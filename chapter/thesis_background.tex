@@ -1,115 +1,25 @@
-\documentclass[11pt, a4paper, oneside]{article}
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
+\chapter{Background on adversarial examples}
+	\label{chap:resources}
+	
+\section{Deep Learning}
 
-\usepackage[english]{babel}
+\section{General background on adversarial examples}
 
-\usepackage[style=ACM-Reference-Format,backend=bibtex]{biblatex}
-\addbibresource{citations.bib}
-\usepackage{graphicx}
-\graphicspath{ {images/} }
-\usepackage{amsmath}
-\usepackage{textcomp}
-\usepackage{gensymb}
-
-
-\begin{document}
-\begin{titlepage}
-   \begin{center}
-       \vspace*{1cm}
-
-       \textbf{\LARGE Generative networks for 3D black-box adversarial attacks}
-
-       \vspace{1cm}
-        CSCM10 Project Specification
-            
-       \vspace{1.5cm}
-
-       \textbf{Alexandru Dascălu 965337}
-
-       \vfill
-            
-       \vspace{0.8cm}
-            
-       Department of Computer Science\\
-       Swansea University\\
-       United Kingdom of Great Britain and Northern Ireland\\
-       2nd of May 2022
-            
-   \end{center}
-\end{titlepage}
-
-\tableofcontents
-\clearpage
-
-\section{Introduction}
-    \label{sec:introduction}
-
-Over the past 10 years, deep neural network models have advanced tremendously, with numerous novel architectures being proposed \cite{alexnet, densenet, googlenet}. They have been used for tasks such as object recognition, image segmentation, automatic language translation, and safety and security-critical tasks, such as face recognition \cite{face_recognition}, self-driving cars \cite{self_driving_cars} and malware detection \cite{malware_detection}. 
-
-However, neural networks are vulnerable to a variety of attacks which enable malicious agents to manipulate their outputs \cite{deep_leakage, trojan_attacks, poisoning_attacks, szegedy2014intriguing}, including adversarial attacks. First discovered in 2014 by Szegedy \textit{et al.} \cite{szegedy2014intriguing}, they involve crafting special perturbations that are added to the original input to make the victim model output a wrong label. Moreover, these perturbations are often imperceptible to humans \cite{szegedy2014intriguing}, and can specific wrong outputs which are very different to the correct output.
-
-Since then, research has proven that attacks in the physical world \cite{evtimov_road_signs} and in cyberspace \cite{papernot_cyberspace_attack} are possible. For example, Eykholt \textit{et al.} \cite{evtimov_road_signs} successfully performed an adversarial attack that fooled a road sign recognition model in real life. Athalye \textit{et al.} \cite{athalye} created physical 3D objects that consistently fool image recognition NNs, regardless of the camera angle. This was in contrast to traditional attacks that create 2D adversarial images, as those are much less effective when printed and physically held in front of a camera \cite{lu_physical_experiments}. Consequently, the existence of adversarial examples undermines the applicability of neural networks, especially in domains where safety is critical.
-
-One disadvantage of the physical world attack created by Athalye \textit{et al.} is that it is a \textbf{white-box} attack, it requires access to the targeted model. Another line of research looked at \textbf{black-box} attacks, which do not have this requirement \cite{akhtar} and are thus more practical for the attackers. However, the black-box attacks in the literature only create 2D adversarial examples in the lab setting and are much less effective in a physical scenario.
-
-An adversarial attack that is both black-box and applicable to the physical domain would be especially practical for attackers, and thus dangerous. Therefore, my project will try to combine the framework used in Athalye \textit{et al.} \cite{athalye} and the generative model presented in \cite{zheng_black_box_GAN} to create a black-box adversarial attack which produces 3D rendered objects that can consistently fool object classifier neural networks. The project is exploratory in nature and seeks to investigate if such an attack is possible. The findings, such as fooling rates against various victim models, may be useful for further understanding the nature of adversarial attacks and for creating better defence methods. 
-
-\section{Motivation}
-    \label{sec:motivation}
-
-Adversarial attacks are often highly effective at fooling a victim model \cite{akhtar, silva_survey, dong2020benchmarking, robustart, fgsm}. One dangerous example was demonstrated in Hendrik Metzen \textit{et al.} \cite{Metzen_2017_ICCV}, where the authors performed adversarial attacks on a neural network used for image segmentation for use in a self-driving car. They managed to make the victim model not perceive pedestrians, as 84.5\% of pedestrian pixels were misclassified. If an attacker were to implement it in real life, the self-driving car could have run over pedestrians, as it would not see them, as you can see in figure \ref{fig:adversarial_segmentation}. However, the attacks in \cite{Metzen_2017_ICCV} were only done in a lab setting and not a physical setting.
-
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.8\textwidth]{adversarial_segmentation.JPG}
-    \caption{Example of an adversarial attack which removes pedestrians from the perception of a scene by a neural network. The top row cotnains the original netural image and the correct image segmentation. Th middle row shows the adversarial perturbation and the target segmentation, which is the same image, but with pedestrians removed from the scene. The last row shows the adversarial example and the predicted image segmentation. Taken from \cite{Metzen_2017_ICCV}.}
-    \label{fig:adversarial_segmentation}
-\end{figure}
-
-Most attacks, including the one in \cite{Metzen_2017_ICCV}, directly add the image perturbations to the whole input image. In a realistic setting, the attacker would not be able to directly manipulate the input to a neural network, especially when the neural network takes its input from sensors. Examples include robots and self-driving cars which use cameras and voice command systems \cite{kurakin2016adversarial}. On the other hand, Eykholt \textit{et al.} \cite{evtimov_road_signs} created adversarial patches which humans could mistake stuck them over a real STOP road sign. They then took pictures of the sign from a moving car and fed them into two different neural networks. The sign was misclassified 84.8 and 87.5\% of the time, respectively. Their attack would have made a self-driving car not stop at an intersection, and potentially cause a car crash. From the two examples in \cite{evtimov_road_signs} and \cite{Metzen_2017_ICCV}, we can see that adversarial examples are a clear threat to neural networks used in safety-critical systems.
-
-The attacks against cyber-physical systems presented in \cite{athalye} and \cite{evtimov_road_signs} are \textbf{white-box}, they require access to the victim model's architecture, weights and loss function gradients. Traditional security measures such as encryption and network access control could secure the model and prevent attacks. But as mentioned in the introduction, \textit{black-box} attacks do not need access to the victim, thus bypassing those security measures. Consequently, they are more likely to be used by malicious agents. 
-
-Therefore, black-box attacks which also work in physical settings are the attacks most likely to be used by malicious agents. However, to my knowledge, no attack in the literature has both of these characteristics. The attacks in \cite{upset_angri} and \cite{zheng_black_box_GAN} only create adversarial noise for 2D images. The purpose of this project is to combine a black-box attack method with a white-box framework for creating 3D adversarial objects to see if it is successful. I specifically plan to use generative models for creating black-box adversarial perturbations specifically as they have proven to have high fooling rates \cite{upset_angri, zheng_black_box_GAN}.
-
-Creating new, powerful and practical attack methods has several benefits. Firstly, the finds of the project may reveal further insight into the nature of adversarial attacks and how to defend against them. Secondly, it may raise awareness of the risks involved with using ML models in physical systems. Furthermore, it is important to assess the robustness of neural networks against adversarial attacks by testing them with a variety of strong attacks. The proposed attack method may be used in future benchmarks to test the robustness of models. Finally, one of the more popular and effective defence methods is adversarial training \cite{dong2020benchmarking}, where adversarial examples labelled with the ground truth are included in the training set. It is important to augment the training set with adversarial examples made with powerful attack methods. Consequently, the attack method developed in this project could be very useful for improving the robustness of models via adversarial training.
-
-\section{Aims and objectives}
-    \label{sec:aims_objectives}
-
-The project aims to establish if it is possible to use a generative network to create black-box adversarial perturbations for a 2D texture, which when rendered into a 3D object in various poses, manages to fool the target network. 
-
-Therefore, the objectives of the project are as follows:
-
-\begin{itemize}
-    \item Re-create the generative network and the experimental results shown in \cite{zheng_black_box_GAN}.
-    \item Re-create the experimental results in \cite{athalye} for 3D rendered objects.
-    \item Create a generative network that is capable of making adversarial perturbations that consistently fool a neural network classifier, when those perturbations are applied to the texture of a 3D rendered object, regardless of the rotation or position of the object.
-    \item Evaluate the new attack method by using two comprehensive benchmarks. The one shown in \cite{dong2020benchmarking} will be used to see how it compares against other attacks and how successful it is against various defence methods, while the benchmark in \cite{robustart} will be used to evaluate how effective the attack is against models with various architectures and training techniques.
-    \item If time allows, an \textbf{optional} objective is to use the new attack method to fool facial recognition neural models. More detail on this objective can be found in subsection \ref{subsec:face_masks}.
-\end{itemize}
-
-\section{Literature search}
-    \label{sec:literature_search}
-  
-\subsection{Background on adversarial examples}
- 
-\subsubsection{Applicability of adversarial attacks}
+\subsection{Applicability of adversarial attacks}
   
 Ever since the publication of \cite{szegedy2014intriguing}, there has been a lot of research activity on adversarial attacks \cite{akhtar, silva_survey, tnnls_survey}, with dozens of different attack methods and defences being implemented. Most of the research has been on CNNs for object recognition tasks \cite{akhtar}. However, adversarial attacks are possible on other architectures, such as GANs \cite{kos_attacks_on_gans}, autoencoders \cite{tabacof_attacks_autoencoders}, recurrent neural networks \cite{papernot_attacks_rnns} and neural networks for semantic segmentation of an image \cite{Metzen_2017_ICCV}. Moreover, autoencoders are much more resilient against adversarial attacks \cite{tabacof_attacks_autoencoders}, and the experiments done by Tang \textit{et al.} \cite{robustart} show that Vision Transformers are more robust against adversarial attacks than CNNs.
 
-\subsubsection{Taxonomy of adversarial attacks}
+\subsection{Taxonomy of adversarial attacks}
 
 Akhtar \textit{et al.} \cite{akhtar} wrote the first comprehensive literature review on adversarial attacks and defences in deep learning for computer vision. The authors show a comprehensive list of attacks, but do not provide a useful taxonomy and only classify them based on the architecture type of the targeted neural network. 
 
 On the other hand, a later survey \cite{silva_survey} categorises attacks based on several criteria. Depending on the \textbf{information} the attacker knows, an attack may be \textbf{white-box} or \textbf{black-box}, as I have mentioned in sections \ref{sec:introduction} and \ref{sec:motivation}. Attacks can also be classified depending on the \textbf{goals} of the attacker. \textbf{Untargeted} attacks only seek to make the victim model output a wrong result, whatever it may be. Meanwhile, \textbf{targeted} attacks also have the goal of making the victim compute a specific wrong label. Furthermore, most attacks produce \textbf{image-specific} perturbations, which are designed to work for one specific image only. However, Moosavi-Dezfooli \textit{et al.} \cite{Moosavi-Dezfooli_2017_CVPR} discovered a method of creating \textbf{universal} adversarial noise, which induces misclassification when applied to the vast majority of images. Finally, attacks can be categorised based on the \textbf{attack frequency}, whether the adversarial noise is generated in one step or in an iterative process.
 
-\subsubsection{Transferability}
+\subsection{Transferability}
 
 Many black-box attacks succeed due to the \textbf{transferability} of adversarial perturbations. This property, first discovered in \cite{szegedy2014intriguing}, means that adversarial perturbations crafted to fool one model are often just as effective when used against other models, even if other models have a different architecture. Therefore, an attacker can create adversarial perturbations for a substitute model that they control and then use them to mount an attack against another model with inaccessible parameters and loss function gradient. ANGRI \cite{upset_angri} uses 3-4 substitute models at the same time and minimizes the cross-entropy loss for the target class for all of them. Similarly, Zheng \textit{et al.} \cite{zheng_black_box_GAN} train their generator against a substitute model, and they analyse four different substitute models. Their experiments show that CNNs which use depth-wise separable convolution \cite{xception} produce stronger adversarial perturbations when used as substitutes.
 
-\subsubsection{Generating adversarial examples}
+\subsection{Generating adversarial examples}
 
 Generating adversarial perturbations is an optimisation problem, and there is a wide variety of formualtions of the problem in the literature. Szegedy \textit{et al.} \cite{szegedy2014intriguing} first defined it as finding the minimum perturbation $\delta$ such that the victim model computes the desired wrong label $y^\prime$:
 
@@ -154,11 +64,11 @@ In equation 4, the second term ensures that the loss function in regards to the 
 
 In most papers on the subject, the optimisation problem constrains the size of the perturbation vector $\delta$ \cite{akhtar, silva_survey, tnnls_survey}. It does so by making sure that the perturbation vector's $\ell_2$ or $\ell_\infty$ norm must be smaller than the maximum threshold $\epsilon$. This is to ensure that the perturbation is not too noticeable to the human eye. The $\ell_0$ norm is used by some attacks \cite{akhtar} which only want to change as few pixels as possible. 
 
-The optimisation problem is usually solved through gradient descent. Szegedy \textit{et al.} \cite{szegedy2014intriguing} used a box constrained L-BFGS optimiser. Goodfellow \textit{et al.} \cite{fgsm} developed FGSM, a fast one-step attack method that is very popular in the literature. It calculates the gradient of the loss function of the target classifier at the given input and multiplies its sign with a constant scalar value to obtain a perturbation that will change the output label. Basic Iterative Method is another attack method based on gradient descent and is equivalent to the L$\infty$ version of Projected Gradient Descent \cite{madry2019deep}, which is itself a popular method to create adversarial examples. On the other hand, generative networks can also be used instead of gradient descent to create adversarial perturbations \cite{upset_angri, zheng_black_box_GAN, GANs_adversarial_attacks}. These methods will be presented in more detail in subsection \ref{subsec:generative_models}. 
+The optimisation problem is usually solved through gradient descent. Szegedy \textit{et al.} \cite{szegedy2014intriguing} used a box constrained L-BFGS optimiser. Goodfellow \textit{et al.} \cite{fgsm} developed FGSM, a fast one-step attack method that is very popular in the literature. It calculates the gradient of the loss function of the target classifier at the given input and multiplies its sign with a constant scalar value to obtain a perturbation that will change the output label. Basic Iterative Method is another attack method based on gradient descent and is equivalent to the L$\infty$ version of Projected Gradient Descent \cite{madry2019deep}, which is itself a popular method to create adversarial examples. On the other hand, generative networks can also be used instead of gradient descent to create adversarial perturbations \cite{upset_angri, zheng_black_box_GAN, GANs_adversarial_attacks}. These methods will be presented in more detail in subsection \ref{sec:generative_models}. 
 
 Akhtar and Mian \cite{akhtar} provide a very useful table summarising many attack methods and whether they are white-box or black-box, targeted or untargeted, and what perturbation vector norm they use.
 
-\subsubsection{Why do adversarial examples exist?}
+\subsection{Why do adversarial examples exist?}
 
 While Silva and Najafirad \cite{silva_survey} do not cover why adversarial examples exist, Akhtar and Mian \cite{akhtar} dedicate section 5 to this topic. They report that there are varied and sometimes contradictory viewpoints in regards to this problem and that there is no consensus. However, they claim that the hypothesis in \cite{fgsm} is the most popular.
 
@@ -168,11 +78,12 @@ On the other hand, Tanay and Griffin \cite{tanay2016boundary} contradict this an
 
 On a different line of thought, Ilyas \textit{et al.} \cite{adv_examples_bugs} hypothesize that images contain subtle features that are useful for maximising the classification accuracy but are totally meaningless in regards to the object in the photo. Adversarial perturbations that resemble these features make the victim model misclassify the adversarial examples with very high confidence.
 
-\subsubsection{Defences against adversarial attacks}
+\subsection{Defences against adversarial attacks}
 
 Akhtar and Mian \cite{akhtar} classified defences to adversarial attacks as follows: modified input/training, modifying the neural networks, or adding external models as add-ons. However, their classification is confusing, as they list SafetyNet, which uses an SVM to detect adversarial perturbations besides the DNN, as modifying the network and not as an add-on. Silva and Najafirad \cite{silva_survey} provide another classification: gradient masking, used so that the attacker can not use the loss function gradient to create adversarial examples, adversarial example detection and robust optimisation. The latter includes adversarial training, where adversarial examples labelled with the correct label are added to the training set, certified defences, where the model is proven formally to be resistant against perturbations up to a certain limit, and regularisation. The authors put a lot of emphasis on certified defences and seem to disregard the effectiveness of adversarial training. However, Dong \textit{et al.} \cite{dong2020benchmarking} performed extensive experiments that show that adversarial training often leads to more robust models than other defences based on regularisation, certified defence.
 
-\subsection{Challenges of applying adversarial attacks in the physical domain}
+\section{Adversarial attacks in the physical world}
+\subsection{Challenges}
 
 As mentioned earlier in section \ref{sec:motivation}, malicious agents can not directly influence the input to a neural network in many cyberphysical systems. Furthermore, physical adversarial examples, whether 2D printed images or 3D objects, can have their fooling effectiveness diminished by the angle they are viewed from, their distance from the camera, lighting conditions, the inability of the sensor to pick up the subtle adversarial perturbations, and perhaps colour printing errors \cite{kurakin2016adversarial, athalye, evtimov_road_signs}.
 
@@ -180,7 +91,7 @@ Kurakin \textit{et al.} \cite{kurakin2016adversarial} were among the first who i
 
 The photographs taken in \cite{kurakin2016adversarial} only had slight variations in terms of the camera lighting, camera distance and camera angle. Meanwhile, Lu \textit{et al.} \cite{lu_physical_experiments} did similar experiments to the ones in \cite{kurakin2016adversarial}, except they tried a wide variety of camera angles and distances, and they found that the adversarial examples were successful only when the camera was in certain positions. For example, the accuracy of the model doubled or almost tripled when the camera distance increased from 0.5m to 1.5m. Therefore, they concluded that adversarial examples may not be a serious threat to neural networks used in cyberphysical systems.
 
-\subsubsection{Expectation over Transformation}
+\subsection{Expectation over Transformation}
     \label{subsubsec:eot}
 
 To rectify the shortcomings of adversarial attacks shown in \cite{lu_physical_experiments}, Athalye \textit{et al.} \cite{athalye} proposed the Expectation over Transformation (EOT) framework. It is designed to create adversarial examples that are effective in physical settings, and can work on 3D rendered objects as well as 2D images. Their key innovation is that they model transformations such rotation, translation, perspective projection, 3D rendering or lighting in the optimisation search for the adversarial noise. Therefore, they formulate the following optimisation problem:
@@ -198,7 +109,7 @@ The first term maximises the log probability that the neural network will classi
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.8\textwidth]{rendering.JPG}
+    \includegraphics[width=0.8\textwidth]{graphics/rendering.JPG}
     \caption{The transformation function can model the rendering of a 2D texture into a 3D object with a specific pose. Images are taken from \cite{athalye}.}
     \label{fig:rendering}
 \end{figure}
@@ -223,12 +134,12 @@ To test the EOT framework for generating 3D adversarial objects, the authors eva
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=1\textwidth]{turtle.JPG}
+    \includegraphics[width=1\textwidth]{graphics/turtle.JPG}
     \caption{A selection of photographs of the 3D adversarial turtle object. The adversarial perturbation was made for the "rifle" target label. Taken from \cite{athalye}.}
     \label{fig:3d_turtle}
 \end{figure}
 
-\subsubsection{Robust Physical Perturbations}
+\subsection{Robust Physical Perturbations}
 
 Concurrently to the work presented in subsection \ref{subsubsec:eot}, Eykholt \textit{et al.} \cite{evtimov_road_signs} developed a similar method for creating robust physical-world attacks, called Robust Physical Perturbations ($\textrm{RP}_2$). It is geared towards adversarial perturbations for 2D physical objects, such as traffic signs. 
 
@@ -249,33 +160,70 @@ With these changes in mind, the authors of \cite{evtimov_road_signs} define the 
 
 Eykholt \textit{et al.} used $\textrm{RP}_2$ to create a poster of a driving STOP sign, with perturbations applied to the whole surface of the sign. They manually took photos of the poster from a variety of distance and angles, and 100\% these photos were misclassified as $y_t$ by a CNN, with an average confidence of 80.51\%. In another experiment, they created adversarial patches in the form of a stickers and placed them over a a real STOP sign. Just like in the previous experiment, they took photos of the sign and then fed them into the CNN. The attack with regular stickers had a 100\% success rate, and an attack with a sticker which looked like a graffiti succeeded 66.67\% of the time.
 
-\subsection{Generative Models}
-    \label{subsec:generative_models}
-
-\subsubsection{ANGRI}
-
-\subsubsection{GAN-like model for generating black-box attacks}
-
-\section{Research methodology and experiment design}
-
-\subsection{Generative model for 3D adversarial objects}
-
-I chose to use EOT \cite{athalye} rather than $\textrm{RP}_2$ \cite{evtimov_road_signs} because it is a lot more convenient. $\textrm{RP}_2$ requires the user to manually take a lot of photos and to manually create the perturbation mask $M_x$. Furthermore, the authors of \cite{evtimov_road_signs} do not offer any detailed information how the perturbation alignment function $T_i$ works, and their approach is only applicable to flat physical surfaces, like road signs. On the other hand, EOT works for any 3D object \cite{athalye}. Finally, I believe that EOT transformation functions for 3D rendered objects can accurately simulate real-world transformations.
-
-\subsection{Experiment design}
-
-\subsection{3D Adversarial face masks}
-    \label{subsec:face_masks}
+\section{Generative Models}
+    \label{sec:generative_models}
     
-\section{Project management}
+\subsection{GANs and autoencoders}
+    
+This subsection will introduce some common generative model architectures that are relevant for this project.
 
-\subsection{Deliverables}
+\textbf{Generative Adversarial Networks} (GAN) is a framework first proposed in Goodfellow \textit{et al.} \cite{gans}. It consists of a generator which creates new data samples and a discriminator whose job is to tell which samples are real or generated. The generator is trained to create samples which the discriminator network can not distinguish from real data. The generator and discriminator are each trained alternatively, several steps at a time. GANs have proven to be very powerful and are capable of generating highly realistic photos of people \cite{styleGAN}.
 
-\subsection{Schedule}
+\textbf{Autoencoders} are a type of neural network that is used to learn an appropriate latent representation of data. It is made up of an encoder and a decoder. The encoder reduces the input into a smaller latent vector and it often takes the shape of a neural network without a softmax layer. The decoder takes the latent vector as input and uses deconvolutional layers to generate new data. Auto-encoders are usually trained to reconstruct the original image from the latent space, though they can be used to generate something else too.
 
-\subsection{Risk analysis}
+\subsection{Generative model for creating black-box attacks}
+    \label{subsubsec:zheng}
 
-\clearpage
-\printbibliography
+Zheng \textit{et al.} \cite{zheng_black_box_GAN} proposed a generative model for creating targeted black-box adversarial examples for 2D images. Its architecture consists of two components, a generator and a simulator. The purpose of the simulator is to act as a substitute for the black-box victim model, while the generator creates adversarial noise for a given image and target label.
 
-\end{document}
+The simulator is trained so that it provides the same output as the victim model for a given adversarial example created by the generator:
+
+\begin{equation}
+\begin{aligned}
+\min_{\theta_s} \quad & L(S(\theta_s, x + G(x, z)),V(\theta_v, x + G(x, z)))\\
+\textrm{s.t.} \quad & x \in X, \|G(x, z)\|_\infty < \delta
+\label{eq:simulator_loss}
+\end{aligned}
+\end{equation}
+
+\noindent where the outputs predicted by the simulator and victim model are denoted by $S(\cdot,\cdot)$ and $V(\cdot,\cdot)$, respectively. $\theta_s$ and $\theta_v$ are the parameters of the simulator and victim model, respectively. The adversarial noise created by the generator for a given image $x$ and a given target label $z$ is written as $G(x,z)$. $X$ is the training set and $\delta$ is the perturbation budget. Equation \ref{eq:simulator_loss} is visualised in figure \ref{fig:simulator_loss}.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\textwidth]{graphics/simulator_loss.JPG}
+    \caption{Computational flow of the loss function for training the simulator. Diagram taken from \cite{zheng_black_box_GAN}.}
+    \label{fig:simulator_loss}
+\end{figure}
+
+Meanwhile, the generator is trained to fool the simulator such that the latter will classify the generated adversarial noise with the desired wrong label $z$. Training the generator takes the following form:
+
+\begin{equation}
+\begin{aligned}
+\min_{\theta_g} \quad & L(S(\theta_s, x + G(x, z)),z) + \beta\|G(x,z)\|_2\\
+\textrm{s.t.} \quad & x \in X, z \in Y \setminus \{y\}\\
+\label{eq:generator_loss}
+\end{aligned}
+\end{equation}
+
+\noindent where $\theta_g$ is the parameter vector of the generator, $Y$ is the set of labels and $y$ is the correct label of $x$. $\beta$ is a constant for the perturbation size penalty. Figure \ref{fig:generator_loss} visualises the generator training process.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\textwidth]{graphics/generator_loss.JPG}
+    \caption{Computational flow of the loss function for training the generator. Diagram taken from \cite{zheng_black_box_GAN}.}
+    \label{fig:generator_loss}
+\end{figure}
+
+Because the authors perform adversarial attacks for object recognition, they use various CNNs as simulators, including the Xception model \cite{xception}. Moreover, the proposed generator is an auto-encoder, as you can see in figure \ref{fig:generator}. The encoder takes the form of a CNN without fully connected layers or a softmax layer, and its job is to encode an image as a smaller vector in latent space. The decoder is an ensemble of neural networks made out of deconvolutional layers, and its output is the adversarial perturbation. 
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\textwidth]{graphics/generator.JPG}
+    \caption{The autoencoder architecture of the generator in \cite{zheng_black_box_GAN}. Diagram taken from \cite{zheng_black_box_GAN}.}
+    \label{fig:generator}
+\end{figure}
+
+The decoder uses an ensemble of expert models because the perturbation must be designed for a given target label. The decoder has a gating sub-network inspired by \cite{experts_mixture_gate} which outputs a sparse weights vector based on the target label. The output of the decoder is a weighted sum of the outputs of each expert model, using the weights from the gating network. The decoder will use different combinations of expert models for different target labels.
+
+The targeted adversarial examples produced by Zheng \textit{et al.} \cite{zheng_black_box_GAN} had an average success rate of over 80\% on the CIFAR-10 dataset and of 68.55\% on CIFAR-100. We can therefore conclude that the generative model described in this subsection is highly effective for black-box adversarial attacks. 
+
