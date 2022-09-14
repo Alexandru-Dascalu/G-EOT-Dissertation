@@ -16,8 +16,8 @@ Moreover, I plan to use generative models for creating black-box adversarial per
 
 This is an experimental research project. The model proposed in subsection \ref{subsubsec:architecture_design} will create 3D-rendered objects, and pictures of those objects will be given to various neural network classifiers. The predicted label will be compared against the correct label and the adversarial target label to evaluate the effectiveness of the proposed method. Further details on the experiments are found in subsection \ref{sec:experiment_design}.
 
-\subsection{Architecture design of GAN-EOT}
-    \label{subsubsec:architecture_design}
+\section{Architecture design of GAN-EOT}
+    \label{sec:architecture_design}
     
 The proposed GAN-EOT is almost the same generative model presented in subsection \ref{subsubsec:zheng}, except that it has elements of the EOT framework \cite{athalye} added to it. The key difference is that the generator produces adversarial perturbations for a 2D texture rather than an image of an object, as you can see in figure \ref{fig:proposed_model}. Moreover, the adversarial texture is then rendered as a 3D object, and an image of the rendered object is then given to the simulator.
 

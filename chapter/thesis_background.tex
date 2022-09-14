@@ -1,29 +1,16 @@
-\chapter{Background on adversarial examples}
-	\label{chap:resources}
+\chapter{Research background}
+	\label{chap:background}
 	
 \section{Deep Learning}
 
-\section{General background on adversarial examples}
-
-\subsection{Applicability of adversarial attacks}
-  
-Ever since the publication of \cite{szegedy2014intriguing}, there has been a lot of research activity on adversarial attacks \cite{akhtar, silva_survey, tnnls_survey}, with dozens of different attack methods and defences being implemented. Most of the research has been on CNNs for object recognition tasks \cite{akhtar}. However, adversarial attacks are possible on other architectures, such as GANs \cite{kos_attacks_on_gans}, autoencoders \cite{tabacof_attacks_autoencoders}, recurrent neural networks \cite{papernot_attacks_rnns} and neural networks for semantic segmentation of an image \cite{Metzen_2017_ICCV}. Moreover, autoencoders are much more resilient against adversarial attacks \cite{tabacof_attacks_autoencoders}, and the experiments done by Tang \textit{et al.} \cite{robustart} show that Vision Transformers are more robust against adversarial attacks than CNNs.
-
-\subsection{Taxonomy of adversarial attacks}
-
-Akhtar \textit{et al.} \cite{akhtar} wrote the first comprehensive literature review on adversarial attacks and defences in deep learning for computer vision. The authors show a comprehensive list of attacks, but do not provide a useful taxonomy and only classify them based on the architecture type of the targeted neural network. 
-
-On the other hand, a later survey \cite{silva_survey} categorises attacks based on several criteria. Depending on the \textbf{information} the attacker knows, an attack may be \textbf{white-box} or \textbf{black-box}, as I have mentioned in sections \ref{sec:introduction} and \ref{sec:motivation}. Attacks can also be classified depending on the \textbf{goals} of the attacker. \textbf{Untargeted} attacks only seek to make the victim model output a wrong result, whatever it may be. Meanwhile, \textbf{targeted} attacks also have the goal of making the victim compute a specific wrong label. Furthermore, most attacks produce \textbf{image-specific} perturbations, which are designed to work for one specific image only. However, Moosavi-Dezfooli \textit{et al.} \cite{Moosavi-Dezfooli_2017_CVPR} discovered a method of creating \textbf{universal} adversarial noise, which induces misclassification when applied to the vast majority of images. Finally, attacks can be categorised based on the \textbf{attack frequency}, whether the adversarial noise is generated in one step or in an iterative process.
-
-\subsection{Transferability}
-
-Many black-box attacks succeed due to the \textbf{transferability} of adversarial perturbations. This property, first discovered in \cite{szegedy2014intriguing}, means that adversarial perturbations crafted to fool one model are often just as effective when used against other models, even if other models have a different architecture. Therefore, an attacker can create adversarial perturbations for a substitute model that they control and then use them to mount an attack against another model with inaccessible parameters and loss function gradient. ANGRI \cite{upset_angri} uses 3-4 substitute models at the same time and minimizes the cross-entropy loss for the target class for all of them. Similarly, Zheng \textit{et al.} \cite{zheng_black_box_GAN} train their generator against a substitute model, and they analyse four different substitute models. Their experiments show that CNNs which use depth-wise separable convolution \cite{xception} produce stronger adversarial perturbations when used as substitutes.
+\section{General information on adversarial examples}
 
 \subsection{Generating adversarial examples}
 
-Generating adversarial perturbations is an optimisation problem, and there is a wide variety of formualtions of the problem in the literature. Szegedy \textit{et al.} \cite{szegedy2014intriguing} first defined it as finding the minimum perturbation $\delta$ such that the victim model computes the desired wrong label $y^\prime$:
+Generating adversarial perturbations in white-box setting is an optimisation problem, and there is a wide variety of formulations of the problem in the literature. Szegedy \textit{et al.} \cite{szegedy2014intriguing} first defined it in the targeted setting as finding the minimum perturbation $\delta$ such that the victim model $f$ computes the desired wrong label $y^\prime$:
 
 \begin{equation}
+\label{eq:szegedy_1}
 \begin{aligned}
 \min_{\delta} \quad & c\|\delta\|_2\\
 \textrm{s.t.} \quad & f(x + \delta) = y^\prime\\
@@ -31,22 +18,23 @@ Generating adversarial perturbations is an optimisation problem, and there is a 
 \end{aligned}
 \end{equation}
 
-Because equation 1 is a very hard optimisation problem, Szegedy \textit{et al.} \cite{szegedy2014intriguing} use a relaxed form of the problem, where the constraint regarding the desired output is included in the objective function:
+Because equation \ref{eq:szegedy_1} is a very hard optimisation problem, Szegedy \textit{et al.} \cite{szegedy2014intriguing} use a relaxed form of the problem, where the constraint regarding the desired output is included in the objective function:
 
 \begin{equation}
+\label{eq:szegedy_2}
 \begin{aligned}
-\min_{\delta} \quad & c\|\delta\|_2 + \mathcal{L}(f(x + \delta), y^\prime)\\
+\min_{\delta} \quad & c\|\delta\|_2 + L(f(x + \delta), y^\prime)\\
 \textrm{s.t.} \quad& x + \delta \in [0,1]^m \textrm{, m is the number of pixels in image}   \\
 \end{aligned}
 \end{equation}
 
-In equation 2, $\mathcal{L}$ represents the loss function of the victim model. We want to minimise the loss in regards to the desired wrong label to increase the chance that the victim model will produce that output when the adversarial input is given.
+In equation \ref{eq:szegedy_2}, $L$ represents the loss function of the victim model. We want to minimise the loss in regards to the desired wrong label to increase the chance that the victim model will produce that output when the adversarial input is given.
 
 Another paper \cite{silva_survey} defines the problem for untargeted adversarial attacks as:
 
 \begin{equation}
 \begin{aligned}
-\max_{\delta} \quad & \mathcal{L}(f(x + \delta), y)\\
+\max_{\delta} \quad & L(f(x + \delta), y)\\
 \textrm{s.t.} \quad& \|\delta\|_2\leq\epsilon   \\
 \end{aligned}
 \end{equation}
@@ -54,47 +42,62 @@ Another paper \cite{silva_survey} defines the problem for untargeted adversarial
 Here, maximising the loss in regards to the true label increases the chance that the model will not give that output. For targeted attacks, they define it as :
 
 \begin{equation}
+\label{eq:silva}
 \begin{aligned}
-\max_{\delta} \quad & \mathcal{L}(f(x + \delta), y) - \mathcal{L}(f(x + \delta), y^\prime)\\
+\max_{\delta} \quad & L(f(x + \delta), y) - L(f(x + \delta), y^\prime)\\
 \textrm{s.t.} \quad& \|\delta\|_2\leq\epsilon   \\
 \end{aligned}
 \end{equation}
 
-In equation 4, the second term ensures that the loss function in regards to the desired wrong label is minimised.
+In equation \ref{eq:silva}, the second term ensures that the loss function in regards to the desired wrong label is minimised.
 
-In most papers on the subject, the optimisation problem constrains the size of the perturbation vector $\delta$ \cite{akhtar, silva_survey, tnnls_survey}. It does so by making sure that the perturbation vector's $\ell_2$ or $\ell_\infty$ norm must be smaller than the maximum threshold $\epsilon$. This is to ensure that the perturbation is not too noticeable to the human eye. The $\ell_0$ norm is used by some attacks \cite{akhtar} which only want to change as few pixels as possible. 
+In most papers on the subject, the optimisation problem constrains the size of the perturbation vector $\delta$ \cite{akhtar, silva_survey, tnnls_survey}. It does so by making sure that the perturbation vector's $\ell_2$ or $\ell_\infty$ norm is smaller than the maximum threshold $\epsilon$. This is to ensure that the perturbation is not too noticeable to the human eye. $\epsilon$ is often called \textbf{perturbation budget} in the literature. The $\ell_0$ norm is used by some attacks \cite{akhtar} which only want to change as few pixels as possible. 
 
-The optimisation problem is usually solved through gradient descent. Szegedy \textit{et al.} \cite{szegedy2014intriguing} used a box constrained L-BFGS optimiser. Goodfellow \textit{et al.} \cite{fgsm} developed FGSM, a fast one-step attack method that is very popular in the literature. It calculates the gradient of the loss function of the target classifier at the given input and multiplies its sign with a constant scalar value to obtain a perturbation that will change the output label. Basic Iterative Method is another attack method based on gradient descent and is equivalent to the L$\infty$ version of Projected Gradient Descent \cite{madry2019deep}, which is itself a popular method to create adversarial examples. On the other hand, generative networks can also be used instead of gradient descent to create adversarial perturbations \cite{upset_angri, zheng_black_box_GAN, GANs_adversarial_attacks}. These methods will be presented in more detail in subsection \ref{sec:generative_models}. 
+The optimisation problem is usually solved through gradient descent. Szegedy \textit{et al.} \cite{szegedy2014intriguing} used a box constrained L-BFGS optimiser. Goodfellow \textit{et al.} \cite{fgsm} developed FGSM, a fast one-step attack method that is very popular in the literature. It calculates the gradient of the loss function of the target classifier at the given input and multiplies its sign with a constant scalar to obtain a perturbation that will change the output label.  Basic Iterative Method is an iterative version of FGSM \cite{kurakin2016adversarial} and is equivalent to the L$\infty$ version of Projected Gradient Descent \cite{madry2019deep}, which is itself a popular method to create adversarial examples. On the other hand, generative networks can also be used instead of gradient descent to create adversarial perturbations \cite{upset_angri, zheng_black_box_GAN, advGAN}. These methods will be presented in more detail in subsection \ref{sec:generative_models}. 
 
 Akhtar and Mian \cite{akhtar} provide a very useful table summarising many attack methods and whether they are white-box or black-box, targeted or untargeted, and what perturbation vector norm they use.
 
+\subsection{Taxonomy of adversarial attacks}
+
+Akhtar \textit{et al.} \cite{akhtar} wrote the first comprehensive literature review on adversarial attacks and defences in deep learning for computer vision. The authors show a comprehensive list of attacks, but do not provide a useful taxonomy and only classify them based on the architecture type of the targeted neural network. 
+
+On the other hand, a later survey \cite{silva_survey} categorises attacks based on several criteria. Depending on the \textbf{information} the attacker knows, an attack may be \textbf{white-box} or \textbf{black-box}. In the former, the attacker has full access to the architecture and parameters of the victim model, while in the latter the attacker does not have this knowledge. Dong \textit{et al.} \cite{dong2020benchmarking} further divides black-box attacks into three categories: transferability-based attacks, score-based attacks, where the attacker can query the victim model for soft-label predictions on chosen input, and then estimate the gradient, and decision-based attacks, where the attacker can only query for hard-label predictions, for which it is harder to estimate the gradient.
+
+Attacks can also be classified depending on the \textbf{goals} of the attacker. \textbf{Untargeted} attacks only seek to make the victim model output a wrong result, whatever it may be. Meanwhile, \textbf{targeted} attacks have the goal of making the victim compute a specific wrong label. Furthermore, most attacks produce \textbf{image-specific} perturbations, which are designed to work for one specific image only. However, Moosavi-Dezfooli \textit{et al.} \cite{Moosavi-Dezfooli_2017_CVPR} discovered a method of creating \textbf{universal} adversarial noise, which induces misclassification when applied to the vast majority of images in the dataset. Finally, attacks can be categorised based on the \textbf{attack frequency}, whether the adversarial noise is generated in one step, such as in FGSM \cite{fgsm}, or in an iterative process, like in \cite{carlini2017towards}.
+
+\subsection{Applicability of adversarial attacks}
+  
+Ever since the publication of \cite{szegedy2014intriguing}, most of the research has been on CNNs for object recognition tasks \cite{akhtar}. However, adversarial attacks are possible on other architectures, such as GANs \cite{kos_attacks_on_gans}, autoencoders \cite{tabacof_attacks_autoencoders}, recurrent neural networks \cite{papernot_attacks_rnns} and neural networks for semantic segmentation of an image \cite{Metzen_2017_ICCV}. Moreover, autoencoders are much more resilient against adversarial attacks \cite{tabacof_attacks_autoencoders}, and the experiments done by Tang \textit{et al.} \cite{robustart} show that Vision Transformers are more robust against adversarial attacks than CNNs.
+
+\subsection{Transferability}
+
+Transferability-based black-box attacks succeed due to a property of adversarial examples, first discovered in \cite{szegedy2014intriguing}, that they often manage to fool victim models that are different than the model for which the adversarial example was originally made. This can happen even if the two models have different architectures. Therefore, an attacker can create adversarial perturbations for a substitute model that they control and then use them to mount an attack against another model with inaccessible parameters and loss function gradient. Dong \textit{et al.} \cite{mim} use an optimisation method with momentum to create transferability-based attacks. Meanwhile, ANGRI \cite{upset_angri} is a generative model which learns to create adversarial perturbations by using 3-4 substitute models. Similarly, Zheng \textit{et al.} \cite{zheng_black_box_GAN} train their generator against a substitute model, and they analyse four different substitute models. Their experiments show that CNNs which use depth-wise separable convolution \cite{xception} produce stronger adversarial perturbations when used as simulators.
+
 \subsection{Why do adversarial examples exist?}
 
-While Silva and Najafirad \cite{silva_survey} do not cover why adversarial examples exist, Akhtar and Mian \cite{akhtar} dedicate section 5 to this topic. They report that there are varied and sometimes contradictory viewpoints in regards to this problem and that there is no consensus. However, they claim that the hypothesis in \cite{fgsm} is the most popular.
+While Silva and Najafirad \cite{silva_survey} do not cover why adversarial examples exist, Akhtar and Mian \cite{akhtar} report that there are varied and sometimes contradictory viewpoints in regards to this problem and that there is no consensus. However, they claim that the hypothesis in Goodfellow \textit{et al.} \cite{fgsm} is the most popular. This hypothesis says adversarial attacks are caused by the fact that most neural networks are too linear, which is supported by the existence of the FGSM \cite{fgsm} attack method. This excessive linearity could be caused by the popular ReLU activation function, which is piece-wise linear. In Krotov and Hopfield \cite{krotov2018dam}, experiments show that neural networks with highly non-linear activation functions can not be fooled by adversarial examples generated by models equivalent to DNNs with ReLU activation, therefore supporting the linearity hypothesis. 
 
-In \cite{fgsm}, the authors hypothesise that most neural networks are too linear, which is supported by the existence of the FGSM attack method. This excessive linearity could be caused by the popular ReLU activation function, which is piece-wise linear. In \cite{krotov2018dam}, experiments show that neural networks with highly non-linear activation functions can not be fooled by adversarial examples generated by models equivalent to DNNs with ReLU activation, which supports the linearity hypothesis. 
+On the other hand, Tanay and Griffin \cite{tanay2016boundary} contradict this and show that some linear image classifiers are not vulnerable to adversarial attacks. They hypothesize that adversarial examples exist because naturally occurring data samples exist on a subspace of the total input space and that adversarial examples exist when the classification boundary lies too close to this sub-manifold. Therefore, small perturbations manage to move the input across the decision boundary. On the other hand, their experiments show that if the decision boundary is perpendicular to this sub-manifold, the model is more robust against attacks. It is worth noting that their explanation does not totally contradict the linearity hypothesis, as the behaviour they describe is still quite linear.
 
-On the other hand, Tanay and Griffin \cite{tanay2016boundary} contradict this and show that some linear image classifiers are not vulnerable to adversarial attacks. They hypothesize that adversarial examples exist because naturally occurring data samples exist on a subspace of the total input space and that adversarial examples exist when the classification boundary lies too close to this sub-manifold. Therefore, small perturbations manage to move the input across the decision boundary. It is worth noting that their explanation does not totally contradict the linearity hypothesis, as the behaviour they describe is still quite linear.
-
-On a different line of thought, Ilyas \textit{et al.} \cite{adv_examples_bugs} hypothesize that images contain subtle features that are useful for maximising the classification accuracy but are totally meaningless in regards to the object in the photo. Adversarial perturbations that resemble these features make the victim model misclassify the adversarial examples with very high confidence.
+On a different line of thought, Ilyas \textit{et al.} \cite{adv_examples_bugs} hypothesize that images contain subtle features that are useful for maximising the classification accuracy but are semantically meaningless in regards to the object in the photo. Adversarial perturbations that resemble "non-robust" these features make the victim model misclassify the adversarial examples with very high confidence.
 
 \subsection{Defences against adversarial attacks}
 
-Akhtar and Mian \cite{akhtar} classified defences to adversarial attacks as follows: modified input/training, modifying the neural networks, or adding external models as add-ons. However, their classification is confusing, as they list SafetyNet, which uses an SVM to detect adversarial perturbations besides the DNN, as modifying the network and not as an add-on. Silva and Najafirad \cite{silva_survey} provide another classification: gradient masking, used so that the attacker can not use the loss function gradient to create adversarial examples, adversarial example detection and robust optimisation. The latter includes adversarial training, where adversarial examples labelled with the correct label are added to the training set, certified defences, where the model is proven formally to be resistant against perturbations up to a certain limit, and regularisation. The authors put a lot of emphasis on certified defences and seem to disregard the effectiveness of adversarial training. However, Dong \textit{et al.} \cite{dong2020benchmarking} performed extensive experiments that show that adversarial training often leads to more robust models than other defences based on regularisation, certified defence.
+Akhtar and Mian \cite{akhtar} classified defences to adversarial attacks as follows: modified input/training, modifying the neural networks, or adding external models as add-ons. However, their classification is confusing, as they list SafetyNet, which uses an SVM to detect adversarial perturbations besides the DNN, as modifying the network and not as an add-on. Silva and Najafirad \cite{silva_survey} provide another classification: gradient masking, used so that the attacker can not use the loss function gradient to create adversarial examples, adversarial example detection and robust optimisation. The latter includes adversarial training, where adversarial examples labelled with the correct label are added to the training set, certified defences, where the model is proven formally to be resistant against perturbations up to a certain limit, and regularisation. The authors put a lot of emphasis on certified defences and seem to disregard the effectiveness of adversarial training. However, Dong \textit{et al.} \cite{dong2020benchmarking} performed extensive experiments that show that adversarial training often leads to more robust models than other defences based on regularisation or certified defence.
 
 \section{Adversarial attacks in the physical world}
 \subsection{Challenges}
 
-As mentioned earlier in section \ref{sec:motivation}, malicious agents can not directly influence the input to a neural network in many cyberphysical systems. Furthermore, physical adversarial examples, whether 2D printed images or 3D objects, can have their fooling effectiveness diminished by the angle they are viewed from, their distance from the camera, lighting conditions, the inability of the sensor to pick up the subtle adversarial perturbations, and perhaps colour printing errors \cite{kurakin2016adversarial, athalye, evtimov_road_signs}.
+Most attacks, including the one in figure \ref{fig:adversarial_segmentation} on page \pageref{fig:adversarial_segmentation}, directly add the perturbations to the whole image. In a realistic setting, the attacker can not directly manipulate the pixels of the input, especially when the model takes its input from sensors. Furthermore, physical adversarial examples, whether 2D printed images or 3D objects, can have their fooling rate diminished by the angle they are viewed from, their distance from the camera, lighting conditions, the inability of the sensor to pick up the subtle adversarial perturbations, and perhaps colour printing errors \cite{kurakin2016adversarial, athalye, evtimov_road_signs}.
 
-Kurakin \textit{et al.} \cite{kurakin2016adversarial} were among the first who invectigated adversarial attacks in the physical space. They created adversarial examples using FGSM \cite{fgsm}, printed those photos and took a picture of the printed photos using a smartphone. Following that, they used automatic perspective transformation and cropping to transform the picture, then ran the classifier on it, alongside the original adversarial example. They found that only 12.5\% or 33.3\%, depending on the perturbation budget, of adversarial examples were not misclassified anymore after being printed and photographed. Therefore, it was proven that adversarial examples are applicable to the physical domain.
+Kurakin \textit{et al.} \cite{kurakin2016adversarial} were among the first who investigated adversarial attacks in the physical space. They created adversarial images using FGSM \cite{fgsm}, printed them and took a picture of the printed photos using a smartphone. They then used automatic perspective transformation and cropping to transform the picture, then ran the classifier on it and compared the attack success with the original adversarial example. Over 66.67\% of adversarial examples still fooled the victim model after being printed and photographed. Therefore, it was proven that adversarial examples apply to the physical domain.
 
-The photographs taken in \cite{kurakin2016adversarial} only had slight variations in terms of the camera lighting, camera distance and camera angle. Meanwhile, Lu \textit{et al.} \cite{lu_physical_experiments} did similar experiments to the ones in \cite{kurakin2016adversarial}, except they tried a wide variety of camera angles and distances, and they found that the adversarial examples were successful only when the camera was in certain positions. For example, the accuracy of the model doubled or almost tripled when the camera distance increased from 0.5m to 1.5m. Therefore, they concluded that adversarial examples may not be a serious threat to neural networks used in cyberphysical systems.
+However, the photographs taken in \cite{kurakin2016adversarial} only had slight variations in terms of the camera lighting, camera distance and camera angle. Meanwhile, Lu \textit{et al.} \cite{lu_physical_experiments} did similar experiments to the ones in \cite{kurakin2016adversarial}, except they tried a wide variety of camera angles and distances, and they found that the adversarial examples were successful only when the camera was in certain positions. For example, the accuracy of the model doubled or almost tripled when the camera distance increased from 0.5m to 1.5m. Therefore, they concluded that adversarial examples may not be a serious threat to neural networks used in cyberphysical systems.
 
 \subsection{Expectation over Transformation}
     \label{subsubsec:eot}
 
-To rectify the shortcomings of adversarial attacks shown in \cite{lu_physical_experiments}, Athalye \textit{et al.} \cite{athalye} proposed the Expectation over Transformation (EOT) framework. It is designed to create adversarial examples that are effective in physical settings, and can work on 3D rendered objects as well as 2D images. Their key innovation is that they model transformations such rotation, translation, perspective projection, 3D rendering or lighting in the optimisation search for the adversarial noise. Therefore, they formulate the following optimisation problem:
+To rectify the shortcomings of adversarial attacks shown in Lu \textit{et al.} \cite{lu_physical_experiments}, Athalye \textit{et al.} \cite{athalye} proposed the Expectation over Transformation (EOT) framework. It is designed to create adversarial examples that are effective in physical settings, and can work on 3D rendered objects as well as 2D images. Their key innovation is that they model transformations such rotation, translation, perspective projection, 3D rendering or lighting in the optimisation search for the adversarial noise. Therefore, they formulate the following optimisation problem:
 
 \begin{equation}
 \begin{aligned}
