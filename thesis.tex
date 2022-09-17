@@ -64,7 +64,8 @@
 	\end{Acknowledgements}
 	
 % Build the table of contents page.
-	\tableofcontents*
+    \setcounter{tocdepth}{2}
+	\tableofcontents
 	 
 % Optionally you can make a bank of known acronyms in acronyms.tex that you can call on throughout your document.
 	%\input{acronyms} 
@@ -82,7 +83,7 @@
 	\input{./chapter/thesis_background}
 	\input{./chapter/thesis_methodology}
 	\input{./chapter/thesis_evaluation}
- 	\input{./chapter/thesis_typesetting}
+ 	%\input{./chapter/thesis_typesetting}
  	\input{./chapter/thesis_conclusion}
 	
 % Formatting citations properly when they are rendering incorrectly in your PDF can be fiddly,
