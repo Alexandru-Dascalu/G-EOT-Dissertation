@@ -1,8 +1,5 @@
 \chapter{Introduction}
 	\label{chap:intro}
-	
-\section{Adversarial attacks}
-    \label{sec:introduction}
 
 Over the past 10 years, deep neural networks have advanced tremendously, and have been used for safety and security-critical tasks, such as face recognition \cite{face_recognition}, self-driving cars \cite{self_driving_cars} and malware detection \cite{malware_detection}. However, neural networks are vulnerable to a variety of attacks which enable malicious agents to manipulate their outputs \cite{deep_leakage, trojan_attacks, poisoning_attacks, szegedy2014intriguing}. Adversarial attacks are one such class of attacks. First discovered in 2014 by Szegedy \textit{et al.} \cite{szegedy2014intriguing}, they involve crafting special perturbations that are added to the original input to make the victim model predict a wrong label. Moreover, these perturbations are often imperceptible to humans \cite{szegedy2014intriguing}, and can fool a model into outputting specific wrong labels which are very different to the ground truth.
 
@@ -21,14 +18,14 @@ Adversarial attacks are often highly effective at fooling a victim model \cite{a
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.8\textwidth]{graphics/adversarial_segmentation.JPG}
-    \caption{Example of an adversarial attack which removes pedestrians from the perception of a scene by a neural network. The top row contains the original image and the correct image segmentation. The middle row shows the adversarial noise and the target segmentation, which has the pedestrians removed from the scene. The last row shows the adversarial example and the predicted segmentation. Taken from \cite{Metzen_2017_ICCV}.}
+    \includegraphics[width=0.75\textwidth]{graphics/adversarial_segmentation.JPG}
+    \caption[Example of an adversarial example against neural network used in self-driving car.]{Example of an adversarial attack which removes pedestrians from the perception of a scene by a neural network. The top row contains the original image and the correct image segmentation. The middle row shows the adversarial noise and the target segmentation, which has the pedestrians removed from the scene. The last row shows the adversarial example and the predicted segmentation. Taken from \cite{Metzen_2017_ICCV}.}
     \label{fig:adversarial_segmentation}
 \end{figure}
 
 Most attacks, including the one in figure \ref{fig:adversarial_segmentation}, directly add the image perturbations to the whole input image. In a realistic setting, the attacker would not be able to directly manipulate the input to a neural network, especially when the neural network takes its input from sensors. Examples include robots and self-driving cars which use cameras and voice command systems \cite{kurakin2016adversarial}. On the other hand, Eykholt \textit{et al.} \cite{evtimov_road_signs} created adversarial patches which they stuck over a real STOP road sign. They then took pictures of the sign from a moving car and found that they were misclassified 84.8 and 87.5\% of the time by two different neural networks, respectively. Their attack would have made a self-driving car not stop at an intersection, and potentially cause a car crash.
 
-The attacks against cyber-physical systems presented in \cite{athalye} and \cite{evtimov_road_signs} are \textbf{white-box}, they require access to the victim model's architecture and parameters. Traditional security measures such as encryption and network access control could secure the model and prevent attacks. But as mentioned in section \ref{sec:introduction}, \textbf{black-box} attacks do not need access to the victim, thus bypassing those security measures. Consequently, they are more likely to be used by malicious agents. 
+The attacks against cyber-physical systems presented in \cite{athalye} and \cite{evtimov_road_signs} are \textbf{white-box}, they require access to the victim model's architecture and parameters. Traditional security measures such as encryption and network access control could secure the model and prevent attacks. But \textbf{black-box} attacks do not need access to the victim, thus bypassing those security measures. Consequently, they are more likely to be used by malicious agents. 
 
 Therefore, black-box attacks which also work in physical settings are the attacks most likely to be used by malicious agents. However, to my knowledge, no attack in the literature has both of these characteristics. The attacks in \cite{upset_angri, zheng_black_box_GAN, advGAN} only create adversarial noise for 2D images. The purpose of this project is to create a generative model for creating 3D adversarial objects \cite{athalye} and see if it is effective.  I specifically plan to use generative models for creating black-box attacks because, once trained, they can produce adversarial examples almost instantly \cite{advGAN}, rather than the hours it would take with an optimisation method. Moreover, they have high fooling rates \cite{upset_angri, zheng_black_box_GAN, advGAN}.
 
@@ -48,7 +45,7 @@ Therefore, the objectives of the project are as follows:
 
 \begin{itemize}
     \item Re-create the generative network and the experimental results shown in section 4.B of \cite{zheng_black_box_GAN}. This is necessary because my implementation is a modified version of the model in \cite{zheng_black_box_GAN}.
-    \item Re-create the experimental results for 3D rendered objects in section 3.3 of \cite{athalye}. This is necessary because the rendering pipeline from figure \ref{fig:proposed_model} in section \ref{sec:architecture_design} should work like the one in \cite{athalye}.
+    \item Re-create the experimental results for 3D rendered objects in section 3.3 of \cite{athalye}. This is necessary because the rendering pipeline from figure \ref{fig:architecture} in section \ref{sec:proposed_model} should work like the one in \cite{athalye}.
     \item Create a generative network that is capable of making adversarial perturbations that consistently fool a neural network classifier, when those perturbations are applied to the texture of a 3D rendered object, regardless of the rotation or position that the object is rendered in.
     \item Evaluate the new attack method by measuring how well the attack fools various neural networks, as explained in section \ref{sec:experiment_design}, on the dataset of 3D models with textures described in section \ref{sec:dataset}.
 \end{itemize}

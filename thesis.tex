@@ -1,7 +1,7 @@
 % Two sided means the left and right margins are different sizes and they alternate every page. 
 % If your document is printed to be book or spiral bound this allows for a thick spine to not 
 % eat into the space for your page content. 
-\documentclass[11pt, a4paper, twoside, openright]{custard}
+\documentclass[11pt, a4paper, oneside]{custard}
 
 % All imports, packages, and configuration in here. 
 % Your document should be about content so we abstract away the styling rules and tools we are using. 
@@ -11,7 +11,7 @@
 	
 % The custom data for Swansea University and your degree name.
 % The \protect\\ command forces a new line in the title which might be otherwise overriden by the template
-	\title{GAN-EOT - Generative network for 3D black-box adversarial attacks}
+	\title{G-EOT - Generative network for 3D black-box adversarial attacks}
 	\author{Alexandru Dascălu\protect\\{\normalsize 965337}}
 	\awardinginst{Swansea University}
 	
@@ -58,7 +58,7 @@
 	\begin{Acknowledgements}
 		First of all, I would like to express my deep gratitude to my mother for all the emotional support and encouragement that she has given me over the past academic year and for being there when I needed her.
 		
-		Furthermore, I would like to thank Dr. James Deng for being a great supervisor and for guiding me towards realistic project goals.
+		Furthermore, I would like to thank Dr. Jingjing Deng for being a great supervisor and for guiding me towards realistic project goals.
 		
 		Finally, I am thankful to my former coursemate Avi Varma for his support and suggestions and want to thank him for sharing with me things he learnt when doing his project a year ago.
 	\end{Acknowledgements}
@@ -84,7 +84,7 @@
 	\input{./chapter/thesis_methodology}
 	\input{./chapter/thesis_evaluation}
  	%\input{./chapter/thesis_typesetting}
- 	\input{./chapter/thesis_conclusion}
+ 	%\input{./chapter/thesis_conclusion}
 	
 % Formatting citations properly when they are rendering incorrectly in your PDF can be fiddly,
 % espectially when punctuation and international characters are involed. Sometimes multiple re-compilations

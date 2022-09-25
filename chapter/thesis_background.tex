@@ -64,8 +64,6 @@ In most papers on the subject, the optimisation problem constrains the size of t
 
 The optimisation problem is usually solved through gradient descent. Szegedy \textit{et al.} \cite{szegedy2014intriguing} used a box constrained L-BFGS optimiser. Goodfellow \textit{et al.} \cite{fgsm} developed FGSM, a fast one-step attack method that is very popular in the literature. It calculates the gradient of the loss function of the target classifier at the given input and multiplies its sign with a constant scalar to obtain a perturbation that will change the output label.  Basic Iterative Method is an iterative version of FGSM \cite{kurakin2016adversarial} and is equivalent to the L$\infty$ version of Projected Gradient Descent \cite{madry2019deep}, which is itself a popular method to create adversarial examples. On the other hand, generative networks can also be used instead of gradient descent to create adversarial perturbations \cite{upset_angri, zheng_black_box_GAN, advGAN}. These methods will be presented in more detail in subsection \ref{sec:generative_models}. 
 
-Akhtar and Mian \cite{akhtar} provide a very useful table summarising many attack methods and whether they are white-box or black-box, targeted or untargeted, and what perturbation vector norm they use.
-
 \subsection{Taxonomy of adversarial attacks}
 
 Akhtar \textit{et al.} \cite{akhtar} wrote the first comprehensive literature review on adversarial attacks and defences in deep learning for computer vision. The authors show a comprehensive list of attacks, but do not provide a useful taxonomy and only classify them based on the architecture type of the targeted neural network. 
@@ -88,7 +86,7 @@ Akhtar and Mian \cite{akhtar} report that there are varied and sometimes contrad
 
 On the other hand, Tanay and Griffin \cite{tanay2016boundary} contradict this and show that some linear image classifiers are not vulnerable to adversarial attacks. They hypothesize that adversarial examples exist because naturally occurring data samples exist on a subspace of the total input space and that adversarial examples exist when the classification boundary lies too close to this sub-manifold. Therefore, small perturbations manage to move the input across the decision boundary. On the other hand, their experiments show that if the decision boundary is perpendicular to this sub-manifold, the model is more robust against attacks. It is worth noting that their explanation does not totally contradict the linearity hypothesis, as the behaviour they describe is still quite linear.
 
-On a different line of thought, Ilyas \textit{et al.} \cite{adv_examples_bugs} hypothesize that images contain subtle features that are useful for maximising the classification accuracy but are semantically meaningless in regards to the object in the photo. Adversarial perturbations that resemble "non-robust" these features make the victim model misclassify the adversarial examples with very high confidence.
+On a different line of thought, Ilyas \textit{et al.} \cite{adv_examples_bugs} hypothesize that images contain subtle features that are useful for maximising the classification accuracy but are semantically meaningless in regards to the object in the photo. Adversarial perturbations that resemble these "non-robust" features make the victim model misclassify the adversarial examples with very high confidence.
 
 \subsection{Defences against adversarial attacks}
 
@@ -144,6 +142,7 @@ Meanwhile, the distance metric that they used is the Euclidean distance between 
 In each optimisation step, the authors use the mean loss function value over a mini-batch of 40 images, each being a different transformation of the same original image. 32 of those are re-used from the previous mini-batch, while the other 8 are new images created with 8 new transformation functions drawn from the distribution $T$. By using this process, they ensure that the adversarial object remains adversarial even though it is viewed from a wide variety of perspectives.
 
 \subsubsection{Results and discussion}
+    \label{subsubsec:eot_results}
 
 To evaluate the EOT framework for generating 3D adversarial objects, the authors attack an InceptionV3 classifier \cite{inceptionv3} with 78\% accuracy on the Imagenet dataset. For the 3D rendered objects scenario, they used a dataset of 10 3D models, each representing a different class of the Imaganet dataset. For each of these models, they randomly chose 20 random target labels, then created an adversarial texture for that model and target label. 
 
@@ -245,7 +244,7 @@ The simulator in the paper is a CNN. The proposed generator is an auto-encoder, 
     \label{fig:zheng_generator}
 \end{figure}
 
-The decoder is an ensemble of neural networks made out of transposed convolution layers, as you can see in figure \ref{fig:zheng_decoder}. It uses an ensemble because the perturbation must be designed for a given target label. The decoder has a gating sub-network inspired by Shazeer \textit{et al.} \cite{experts_mixture_gate} which learns to create a sparse weights vector based on the target label. The output of the decoder is a weighted sum of the outputs of each expert model, using the weights from the gating network. The decoder uses different combinations of expert models for different target labels, and each expert learns to focus on one or a couple of target labels.
+The decoder is an ensemble of neural networks made out of transposed convolution layers, as you can see in figure \ref{fig:zheng_decoder}. It uses an ensemble because the perturbation must be designed for a given target label. The decoder has a gating sub-network inspired by Shazeer \textit{et al.} \cite{experts_mixture_gate} which learns to create a sparse weights vector based on the target label. This sub-network is just one fully connected layer with as many output neurons as there are experts. The output of the decoder is a weighted sum of the outputs of each expert model, using the weights from the gating network. Different combinations of expert models are used for different target labels, and each expert learns to focus on one or a couple of target labels.
 
 \begin{figure}[h]
     \centering
