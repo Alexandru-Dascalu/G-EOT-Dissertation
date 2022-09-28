@@ -36,7 +36,7 @@ The original textures of the model had a resolution of 1024x1024, 2048x2048 or 4
 Some models have multiple correct labels for two reasons. The first one is that a pre-trained InceptionV3 \cite{inceptionv3} model consistently misclassifies some rendered objects with the same wrong labels, but those labels are semantically related to the correct class. For example, the purse model is often confused with a wallet, but since both a purse and a wallet are made of the same material and have similar colours, we consider this to be meaningful. Similarly, the jeep model is frequently misclassified as a "half-track" and as an "amphibious vehicle", both of those being somewhat similar to jeeps. Secondly, some 3D models can fit in a variety of Imagenet classes. The model of a muscle car can be reasonably described as both a "sports car" and a "race car".
 
 \begin{table}
-\caption{The 3D model dataset, with the correct labels of each model, and the classification accuracy of InceptionV3 on rendered images of those models.}
+\caption{The 3D model dataset, with the correct labels of each model, and the classification accuracy of InceptionV3 on 100 rendered images of those models.}
 \label{table:model_labels_accuracy}
 \begin{tabular}{|p{2.6cm} | p{8.5cm}| p{2cm}|} 
  \hline
@@ -50,21 +50,21 @@ Some models have multiple correct labels for two reasons. The first one is that 
  \hline
  clownfish & anemone fish (393) & 37.2 \\
  \hline
- crocodile & African crocodile (49), American alligator (50) & \\
+ crocodile & African crocodile (49), American alligator (50) & 44  \\
  \hline
  german\_shepherd & All 118 dog breeds (labels 151 to 268), as well as grey wolf, white wolf, red wolf, coyote, dingo, dhole, hyena dog (labels 269 to 275) & 73.2 \\
  \hline
- jeep & amphibious vehicle (408), half-track (586), jeep (609) & \\
+ jeep & amphibious vehicle (408), half-track (586), jeep (609) & 19 \\
  \hline
  orange & orange (950) & 59 \\
  \hline
- orca & orca (148) & \\
+ orca & orca (148) & 69 \\
  \hline
  purse & purse (748), wallet (893) & 71 \\
  \hline
- rugby\_ball & rugby ball (768) & \\
+ rugby\_ball & rugby ball (768) & 95 \\
  \hline
- running\_shoe & running shoe (770) & \\
+ running\_shoe & running shoe (770) & 35 \\
  \hline
  sea\_turtle & loggerhead turtle (33), leatherback turtle (34), mud turtle (35), terrapin (36), box turtle (37) & 89.8 \\
  \hline
@@ -122,12 +122,24 @@ After creating the 50 adversarial textures, the same renderer used during the EO
 \end{figure}
 
 \subsection{Experiment Results}
+    \label{subsec:eot_experiment_results}
 
 On the 5000 images with the normal textures, the average classification accuracy was 60.28\%, while only 0.08\% of them were classified as the adversarial target label. By comparison, the 20000 normal images in Athalye \textit{et al.} \cite{athalye} had an accuracy of 68.8\% and only 0.01\% were classified as the target label. These figures are similar, although my images had a significantly lower classification accuracy. This is caused by the low classification accuracies for normal images of the taxi and camaro models being only 15 and 10.8, as you can see in table \ref{table:model_labels_accuracy}. Without these two models, the average accuracy would be 72.125\%. 
 
 But on the adversarial images, the average classification accuracy was just 0.86\%, very close to the EOT paper's result of 1.1\% \cite{athalye}. Meanwhile, the average TFR was 80.08\%, slightly under the TFR of 83.4\% seen in the EOT paper. The slightly worse performance may be caused by a multitude of factors. Even though the dataset described in section \ref{sec:dataset} is designed to mimick the one used in \cite{athalye}, it is not identical. Furthermore, different values for the $\lambda$ penalty constant, learning rate, and number of steps were used compared to \cite{athalye}, as the authors did not specify what values they used. The mean TFR and the target labels for each individual model can be seen in table\ref{table:eot_results}.
 
 The fact that the adversarial textures brought down the classification accuracy from 60.28\% to 0.86\%, and increased the TFR from 0.08\% to 80.08\%, demonstrates the this implementation of EOT \footnote{https://github.com/Alexandru-Dascalu/adversarial-3d} is highly effective at creating robust adversarial attacks for 3D rendered objects. Moreover, the results are very similar to those in \cite{athalye}, demonstrating that it is an accurate re-creation of the implementation used by the authors of that paper.
+
+In figure \ref{fig:eot_histogram} you can see a histogram of the TFR for each of the 50 adversarial textures. You can see that 27 out of 50 adversarial textures had a mean TFR of over 90\%. Meanwhile, just 2 adversarial textures are failures, with a a mean TFR under 20\%. This demonstrates that the vast majority of adversarial textures for 3D objects are highly successful.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.7\textwidth]{graphics/eot_histogram.PNG}
+    \caption{Histogram of TFR of the 50 adversarial examples.}
+    \label{fig:eot_histogram}
+\end{figure}
+
+It took 82 hours to create the 50 adversarial textures on an RTX 3070 with 8GB of VRAM. That GPU can do around 2900 EOT optimisation steps in an hour, and therefore the creation of a single adversarial texture can take up to around 3.4 hours.
 
 All 50 adversarial textures created by and used in this experiment can be seen in appendix \ref{app:adversarial_textures}.
 
@@ -161,16 +173,8 @@ All 50 adversarial textures created by and used in this experiment can be seen i
 \end{tabular}
 \end{table}
 
+\newpage
 \subsection{Discussion}
-
-Furthermore, in figure \ref{fig:eot_histogram} you can see a histogram of the TFR for each of the 50 adversarial textures.
-
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=0.7\textwidth]{graphics/eot_histogram.PNG}
-    \caption{Histogram of TFR of the 50 adversarial examples.}
-    \label{fig:eot_histogram}
-\end{figure}
 
 \subsubsection{Classification accuracy on normal images}
 
@@ -178,11 +182,113 @@ The very low InceptionV3 classification accuracies for normal texture images of 
 
 Then again, the classification accuracy on images with the nomal texture does not seem to impact the performance of EOT. The adversarial textures for taxi and camaro models had a mean TFR of 87.8\% and 93.39\%, respectively.
 
+\subsubsection{EOT performance depending on the model}
+
+Out of the two adversarial textures with a mean TFR of under 20\%, one is the adversarial texture for the clownfish model and the grand piano target label, the other is the one for the purse model and the pit bull terrier label. Even without those two, the mean TFRs of the clownfish and purse adversarial textures are around only 50\%. The ability of EOT to create adversarial examples seems to be influenced by the perceptual difference between the model and the target label. A clownfish has a vastly different shape and colour to a piano. In particular, the colour pattern of a clownfish is very distinct, and likely prevents the renders of the adversarial clownfish to be classified as a piano. It would require many more optimisation steps to distort it so it has piano features on it.
+
+Similarly, the brown purse model has a very different colour to a pit bull terrier, resulting in the TFR of 0.1\% for that model. However, the purse adversarial texture for the Asian wild dog target label had a mean TFR of 62\%. The contrast may be explained by the fact that the wild dog is brown in colour, and thus already perceptually closer to the brown purse.
+
+Models with a simple shape, similar to a sphere, and/or a colour pattern dominated by one simple colour, seem to be a better "canvas" for EOT to apply adversarial noise to. The barrel and orange 3D models have a mean TFR of over 90\%, as you can see in table \ref{table:eot_results}. The camaro and taxi models mostly have a solid yellow colour and they have a mean TFR of over 85\%. On the other hand, models with more complicated shapes like the sea turtle and the german shepherd have a lower mean TFR. 
+
+A simple colour ensures that EOT can gradually develop adversarial patterns more easily, while a simpler shape means that the model looks similar regardless of the angle it is viewed from, which makes the gradient fluctuate less despite the random poses the models are rendered in.
+
+\subsubsection{Number of iterations}
+
+As subsection \ref{subsec:eot_experiment_design} mentioned, the algorithm stopped when the average loss of the past 400 steps was below 0.5, or for at most 10000 steps. Table \ref{table:eot_results} displays the average number of iterations it took to create the five adversarial examples for each model. It is likely that that threshold for stopping the algorithm could have been set to 0.8 instead of 0.5 to reduce runtime, while obtaining similar TFRs.
+
+Unsurprisingly, the models with the lowest mean TFR, the clownfish and the purse, also took the longest to create. Meanwhile, the models with a simpler texture and colour were easier to optimise. For example, it took EOT on average just 1163.2 iterations to run for the orange model. 
+
+The number of necessary optimisation steps is influenced by the somewhat random nature of the gradient, caused by the fact that each rendered image in the batch is random. This perceptual randomness is smaller for models with a simple shape, as they look similar regardless of the angle they are seen from. As you can see in figure \ref{fig:eot_orange_loss_history}, the loss value fluctuates much less for the orange model, leading to a much faster convergence. At the other extreme, the loss value for the clownfish model and shopping basket target label fluctuates wildly, sometimes from a value of 1 to 3 or even 4, as you can see in figure \ref{fig:eot_clownfish_loss_history}. The "Main loss" in these loss history plots refer to the value of the first term in equation \ref{eq:eot} in subsection \ref{subsubsec:eot_technique}, while "L2 Loss" refers to the penalty constraining the size of the adversarial perturbation in that equaton. "Total Loss" refers to the sum of these terms.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.7\textwidth]{graphics/eot_orange_loss_history.PNG}
+    \caption{Optimisation history for the orange model and target label goblet. L2 loss refers to the penalty term in equation \ref{eq:eot}, main loss refers to the first term. Its evaluation TFR is 100\%.}
+    \label{fig:eot_orange_loss_history}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.7\textwidth]{graphics/eot_clownfish_loss_history.PNG}
+    \caption{Optimisation history for the clownfish model and target label shopping basket. Its TFR is 71\%.}
+    \label{fig:eot_clownfish_loss_history}
+\end{figure}
+
+Another interesting observation is that the longer the EOT algorithm has to run, the more noisy the created adversarial textures will be. You can see this in the textures in figures  \ref{fig:clownfish_noisy_texture} and \ref{fig:dog_noisy_texture}, both which took the maximum number of 10000 steps to create,
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{graphics/clownfish_790_adv_9999.jpg}
+    \caption{Adversarial texture for the clownfish model and target label shopping basket. Its TFR is 71\%.}
+    \label{fig:clownfish_noisy_texture}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{graphics/german_shepherd_427_adv_9999.jpg}
+    \caption{Adversarial texture for the german shepherd model and target label barrel. Its TFR is 76\%.}
+    \label{fig:dog_noisy_texture}
+\end{figure}
+
+\subsubsection{Reusing renders between optimisation steps}
+
+Some ad-hoc experiments done with the barrel model, before the experiment in subsection \ref{subsec:eot_experiment_design}, show that re-using 80\% of renders versus re-using none has little effect in terms of the TFR of adversarial texture. However, it greatly speeds up the EOT algorithm, as it can do the same number of optimisation steps in less than half the time. This shows that one of the most computationally intensive parts of EOT is the computation of UV maps and using the latter to render 2D images of the objects, as Athalye \textit{et al.} \cite{athalye} also suggested.
+
+\subsubsection{Semantic adversarial perturbations}
+
+A key characteristic of the adversarial noise made for textures of 3D objects by EOT is that they show semantically meaningful patterns related to the target class. A different experiment from the one described in subsection \ref{subsec:eot_experiment_design}, on the crocodile 3D model and target label compass, resulted in the texture in figure \ref{fig:crocodile_compass}. EOT added noise on the belly and back of the crocodile with an oval or circular shape, the same shape a compass has. Similarly, you can see in figure \ref{fig:running_shoe_strawberry} that EOT added green spots, reminiscent of the green seeds on a strawberry, for an adversarial texture of the running shoe model for target label strawberry.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.55\textwidth]{graphics/crocodile compass.jpg}
+    \caption{Adversarial texture for the crocodile model and target label compass. It has a TFR of 60\%.}
+    \label{fig:crocodile_compass}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.55\textwidth]{graphics/running shoe strawberry.jpg}
+    \caption{Adversarial texture for the running shoe model and target label compass. It has a TFR of over 80\%.}
+    \label{fig:running_shoe_strawberry}
+\end{figure}
+
+Another example is in figure \ref{fig:running_shoe_rifle}, where the adversarial texture for the running shoe and label rifle exhibits metallic patterns in the shape of a gun barrel. Given that these three adversarial textures have a significant TFR, they highlight features that the InceptionV3 victim model learned for recognising a compass, strawberry and rifle, respectively. Therefore, EOT can be used to study the explainability of a neural network, as it highlights class features that make the neural network classify a completely different object as that class.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.55\textwidth]{graphics/running shoe rifle.jpg}
+    \caption{Adversarial texture for the running shoe model and target label rifle. It has a TFR of 45-50\%.}
+    \label{fig:running_shoe_rifle}
+\end{figure}
+
 \section{G-EOT}
 
 \subsection{Experiment Design}
 
+The purpose of this experiment is to see if G-EOT able to learn to create adversarial noise for textures. The model is evaluated by training it using the process described in subsection \ref{subsec:training}. Firstly, the simulator is warmed-up for 2000 training steps. Following that, the G-EOT model is trained for 40000 steps, where each one consists of one simulator training step and one generator training step. This number was chosen because training the model made by Zheng \textit{et al.} \cite{zheng_black_box_GAN} took around 30000 steps to achieve the results seen in their paper, and G-EOT has a harder generation task. Every 500 training steps, the generator is evaluated on 200 batches of new data samples.
+
+The model is trained on the dataset of 15 3D models presented in section \ref{sec:dataset}. At each training step, the batch is made up of randomly picked models out of this dataset. For each model in the batch, random parameters are sampled for translation, rotation and distance from the camera, and a UV map is computed based on those. Moreover, a random target label is sampled from a uniform distribution. It can be any of the 1000 Imagenet labels, except the correct labels for that model. Therefore, each element in the batch is a randomly picked model, with a UV map for a random pose and a random target label. In this experiment, the batch size is 5, as that is the maximum that will fit with 8 GB of VRAM.
+
+The bounds for the uniform distributions used for sampling the camera distance, X/Y translation, additive and multiplicative lighting, and the standard deviation of the gaussian noise, are the same as those used for the EOT experiment in subsection \ref{subsec:eot_experiment_design}. This experiment does not scale the texture before rendering in order to simulate 3D printer errors, as the adversarial 3D models will not be physically printed.
+
+The number of experts in the decoder is 50, as having one expert for each of the 1000 Imagenet labels would be too much, different combinations of expert outputs can used for each target label. The simulator uses an Adam optimiser with an exponentially decaying learning rate. The initial learning rate is 0.001, with a decay rate of 0.98, and it decays after every 300 steps. The generator uses a constant learning rate of 0.004. The reason is that the random renders can lead to strong fluctuations in the loss function value, as you have seen in subsection \ref{subsec:eot_experiment_results}, and a large constant learning rate mitigated that and improved performance for EOT experiment in \ref{subsec:eot_experiment_results}. The gradients of the generator loss function are clipped to a range between -1 and 1, as Zheng \textit{et al.} \cite{zheng_black_box_GAN} also did.
+
+The noise produced by the G-EOT generator has individual values for each pixel between -25 and 25, to be applied to images with pixel values between 0 and 255. The reason behind this limitation is when training starts, the randomly initialised weights are very small, and therefore the values generated noise tends towards 0. When they are scaled to values between -1 and 1, these values are mostly -1. When added to a texture with pixel values between 0 and 1, this resulted in a completely black image. The simulator would not provide a useful gradient to the generator when given a black image, and therefore I introduced this limitation to avoid this. Further work should look into initialisation techniques to avoid this issue.
+
+The weight $\beta$ from equation \ref{eq:g-eot-l2-loss} on page \pageref{eq:g-eot-l2-loss} has a value of 0.001, chosen to relax the constraint on the size of the adversarial noise and make the learning task for the generator easier. Finally, the weight for L2 regularisation of the weights of the simulator and generator is $0.5 * 10^{-4}$, and the simulator and generator's weights are initialised with Orthogonal Initialisation, which was used in BigGAN \cite{big_gan}.
+
 \subsection{Experiment Results}
     \label{sec:experiment_design}
+    
+You can see a history of the loss of the model in figure \ref{fig:g_eot_loss_history}. The orange plot denotes the value of the first term of equation \ref{eq:generator_loss} on page \pageref{eq:generator_loss}, which measures how close is the generator to fooling the simulator. The green plot denotes the value of the term seen in \ref{eq:g-eot-l2-loss} on page \pageref{eq:g-eot-l2-loss}. The red line represents the average generator loss at each evaluation step, which is done once every 500 training steps, as mentioned in the previous subsection. Moreover, this test loss is calculated by using the victim model rather than the simulator, as fooling the victim model is the intended objective.
+    
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{graphics/g-eot-loss-history.PNG}
+    \caption{Loss history during training for the G-EOT model.}
+    \label{fig:g_eot_loss_history}
+\end{figure}
+
+The figure shows that the gradient for the generator fluctuates wildly between training steps. Moreover, despite a small decrease in the generator main loss and the generator test loss at the very beginning, they do not decrease further during training. Therefore, the generator failed to learn almost anything, having a TFR of almost 0\% for new random renders sampled during evaluation steps.
     
 \subsection{Discussion}

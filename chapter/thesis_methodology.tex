@@ -7,7 +7,7 @@ As you will see later in section \ref{sec:proposed_model}, our proposed model is
     
 \section{Research methodology}
 
-The EOT framework presented in subsection \ref{subsec:eot} is highly effective at creating robust adversarial noise for 3D-rendered objects. This is despite the fact it is training on renders of the object with a random position and angle. In EOT, the transformation from the texture to the rendered image is represented as a simple linear transformation. At the same time, generative models have proven to be capable at learning a distribution for generating large 256x256 images \cite{big_gan}, especially benefiting from having significantly more parameters. Therefore, our intuition is that with the proper training hyper-parameters and architecture, a generative model should be able to learn to create adversarial textures. Since the transformation representing 3D rendering is linear, it should be an insurmountable obstacle for training the generator.
+The EOT framework presented in subsection \ref{subsec:eot} is highly effective at creating robust adversarial noise for 3D-rendered objects. This is despite the fact it is training on renders of the object with a random position and angle. In EOT, the transformation from the texture to the rendered image is represented as a simple linear transformation. At the same time, generative models have proven to be capable at learning a distribution for generating large 256x256 images \cite{big_gan}, especially benefiting from having significantly more parameters. Therefore, my intuition is that with the proper training hyper-parameters and architecture, a generative model should be able to learn to create adversarial textures. Since the transformation representing 3D rendering is linear, it should not be an insurmountable obstacle for training the generator.
 
 Moreover, the black-box generative model in subsection \ref{subsubsec:zheng} can be easily combined with the EOT framework for making adversarial objects in subsection \ref{subsec:eot}, by placing a differentiable rendering pipeline between the generator and the simulator.
 
@@ -118,16 +118,16 @@ The 3D rendering pipeline in figure \ref{fig:architecture} is essentially identi
 
 All textures for 3D models that I could find had at least 1024x1024 pixels, with most having a resolution of 2048x2048. Since generative models struggle to generate output larger than 256x256 pixels \cite{big_gan}, the generator first performs average pooling on the texture to reduce its resolution. The adversarial noise created by the generator has a resolution of 256x256. This is then upsampled using bilinear interpolation to 2048x2048 pixels so that it can be added to the original texture to obtain the adversarial texture.
 
-EOT \cite{athalye} was chosen rather than $\textrm{RP}_2$ \cite{evtimov_road_signs} because it is a lot more convenient, for reasons named in subsection \ref{subsubsec:rp2_results}. Furthermore, the synthetic transformation functions for 3D rendered objects can accurately simulate real-world transformations \cite{athalye}. On the other hand, the method presented in Zheng \textit{et al.} \cite{zheng_black_box_GAN} was chosen for the genera-simulator model rather than one from Xiao \textit{et al.} \cite{advGAN} because it is simpler and it can generate attacks for all target labels, as mentioned in subsection \ref{subsec:AdvGAN}.
-
-\subsection{Generator}
-
-\begin{wrapfigure}[28]{r}{0.5\textwidth}
+\begin{wrapfigure}[27]{r}{0.3\textwidth}
     \centering
-    \includegraphics[width=0.5\textwidth]{graphics/g-eot-encoder.PNG}
+    \includegraphics[width=0.3\textwidth]{graphics/g_eot_encoder.PNG}
     \caption{The structure of the encoder in the G-EOT generator.}
     \label{fig:proposed_encoder}
 \end{wrapfigure}
+
+EOT \cite{athalye} was chosen rather than $\textrm{RP}_2$ \cite{evtimov_road_signs} because it is a lot more convenient, for reasons named in subsection \ref{subsubsec:rp2_results}. Furthermore, the synthetic transformation functions for 3D rendered objects can accurately simulate real-world transformations \cite{athalye}. On the other hand, the method presented in Zheng \textit{et al.} \cite{zheng_black_box_GAN} was chosen for the genera-simulator model rather than one from Xiao \textit{et al.} \cite{advGAN} because it is simpler and it can generate attacks for all target labels, as mentioned in subsection \ref{subsec:AdvGAN}.
+
+\subsection{Generator}
 
 The generator is an auto-encoder with a similar structure as the one in figure \ref{fig:zheng_generator} in subsection \ref{subsubsec:zheng}. Its encoder is a CNN with an architecture inspired by the SimpleNet CNN from Zheng \textit{et al.} \cite{zheng_black_box_GAN}, which is itself inspired by Xception \cite{xception}. 
 
@@ -135,38 +135,40 @@ Its structure can be seen in figure \ref{fig:proposed_encoder}. The numbers afte
 
 Meanwhile, the structure of the decoder is exactly the same as the one in Zheng \textit{et al.} \cite{zheng_black_box_GAN}, shown in figure \ref{fig:zheng_decoder} on page \pageref{fig:zheng_decoder}. A more detailed diagram of the generator is in appendix \ref{app:detailed_architecture}.
 
-The loss function used to train the generator is the same as equation \ref{eq:generator_loss} on page \pageref{eq:generator_loss} describes, except that the penalty term projects images into LAB space before subtracting them:
+The loss function used to train the generator is the same as equation \ref{eq:generator_loss} on page \pageref{eq:generator_loss} describes, except that it is not enough for the penalty term to be the $\ell_2$ norm of the adversarial noise, as the victim model does not perceive the texture directly, but rendered images of the 3D model instead. Therefore, the penalty term used is:
 
 \begin{equation}
+    \label{eq:g-eot-l2-loss}
     \begin{aligned}
-    \beta\|LAB(t(x + G(x,z))) - LAB(t(x))\|_2
+    \beta\|t(x + G(x,z)) - t(x)\|_2
     \end{aligned}
 \end{equation}
 
-\noindent where $x$ is the original texture, $z$ is the target label, $t(\cdot)$ is the transformation function represented by the 3D rendering pipeline, and $G(\cdot, \cdot)$ is the adversarial noise created by the generator. This is done to better encourage imperceptibility to the human eye, as Athalye \textit{et al.} explained.
+\noindent where $x$ is the original texture, $z$ is the target label, $t(\cdot)$ is the transformation function represented by the 3D rendering pipeline, and $G(\cdot, \cdot)$ is the adversarial noise created by the generator. The image with the adversarial texture and the image with the normal texture use the same function $t(\cdot)$ so that the images will have the same pose, and the only difference is caused by the perceived adversarial noise. I chose not to project the images into LAB space, as Athalye \textit{et al.} did, to simplify the training task of the generator.
 
 \subsection{Simulator}
 
-\begin{wrapfigure}[31]{r}{0.4\textwidth}
+\begin{wrapfigure}[24]{r}{0.3\textwidth}
     \centering
-    \includegraphics[width=0.4\textwidth]{graphics/g_eot_simulator.PNG}
+    \includegraphics[width=0.3\textwidth]{graphics/g_eot_simulator.PNG}
     \caption{The structure of the G-EOT simulator.}
     \label{fig:proposed_simulator}
 \end{wrapfigure}
 
-The simulator is also a CNN inspired by the SimpleNet architecture from Zheng \textit{et al.} \cite{zheng_black_box_GAN}, though it is deeper than the generator's encoder. Its architecture can be seen in figure \ref{fig:proposed_simulator}, and a more detailed diagram is in appendix \ref{app:detailed_architecture}.
+The simulator is also a CNN inspired by the SimpleNet architecture from Zheng \textit{et al.} \cite{zheng_black_box_GAN}, and it is almost identical to the architecture of the encoder, though its last three convolutional layers have fewer kernels, and it has a global average pooling and a fully connected layer at the end, and it does not have the average pooling layer at the beginning. It can be seen in figure \ref{fig:proposed_simulator}, and a more detailed diagram is in appendix \ref{app:detailed_architecture}.
 
 Moreover, the loss function for training the simulator is the same as equation \ref{eq:simulator_loss} from subsection \ref{subsubsec:zheng}. 
 
 \subsection{Training techniques}
+    \label{subsec:training}
 
-Firstly, the simulator is warmed up by training it to predict the same labels as the victim model on images rendered using normal textures. This is done to speed-up training, as Zheng \textit{et al.} explained.
+Firstly, the simulator is warmed up by training it to predict the same labels as the victim model does on images rendered using normal textures. This is done to speed-up training, as Zheng \textit{et al.} \cite{zheng_black_box_GAN} explained.
 
-Following that, the simulator and generator are trained in alternative steps. In each simulator training steps, two steps are actually performed. In the first one, the simulator and victim model are given as input images rendered with normal textures. In the second one, they are given images with textures perturbed by the generator. This is done to ensure that throughout training, the simulator further learns to be an accurate imitation of the black-box victim model.
+Following that, the simulator and generator are trained in alternative steps. In each simulator training steps, two steps are actually performed to train the simulator to imitate the victim model. In the first one, the simulator and victim model are given as input images rendered with normal textures. In the second one, they are given images with textures perturbed by the generator. This is done to ensure that throughout training, the simulator further learns to be an accurate imitation of the black-box victim model.
 
 Then a training step is performed for the generator. It trains to generate adversarial noise for textures such that images rendered with those textures fool the simulator, as described by equation \ref{eq:generator_loss} in subsection \ref{subsubsec:zheng} and in subsection \ref{subsec:g_eot_overview}. The gradients of the generator loss function are clipped before they are applied, just as Zheng \textit{et al.} \cite{zheng_black_box_GAN} did for their model.
 
-Unlike in Athalye \textit{et al.} \cite{athalye}, no renders are re-used between mini-batches. This is done because it has been observed that the maximum batch size for G-EOT that can fit in 8GB of memory is only 6. Generating 6 new renders for each training step can be done fast enough, and the model trains better the more new unique samples it sees.
+Unlike in Athalye \textit{et al.} \cite{athalye}, no renders are re-used between mini-batches. This is done because it has been observed that the maximum batch size for G-EOT that can fit in 8GB of memory is only 5. Generating 5 new renders for each training step can be done fast enough, and the model trains better the more new unique samples it sees.
 
 \section{Analytic techniques}
     \label{sec:analytic_techniques}
