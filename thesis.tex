@@ -47,20 +47,24 @@
 		\vspace{-2em}
 		\setcounter{page}{1}
 		
-		In your abstract you should aim to summarize the core contributions of your work in the context of the problem domain. Start by outlining the domain and the problems posed within it. Discuss how the methods you focus on approach the relevant problems. You should end your abstract by concretely stating the tangible outputs and deliverables you have created in order to complete your work on this document, and whether those outputs represent and improvement or alternative approach to existing methods. 
+		Ever since the publication of the AlexNet architecture \cite{alexnet} in 2012, deep neural networks have seen an explosion in popularity, and are used in a wide variety of applications, like malware detection, biometric security, self-driving cars, etc. However, it has been proven that they are vulnerable to adversarial attacks, where subtle perturbations are added to the normal input to fool the victim model into giving a specific wrong output. Neural networks used in safety-critical applications can therefore be a cybersecurity risk.
 		
-		Your abstract should be a couple or so paragraphs long, and roughly approximate the order and flow you then use for structuring the main document. If a viewer has read your abstract then they should already understand at a high level what it is you have created and delivered, and whether it is better than or comparable to existing methods. If your project is driven by a research hypothesis then the reader should know what that is at a high level from this section. Reading on, little should surprise the viewer.
+		Existing attack methods that work in physical settings, not just on 2D images, are white-box, they require full access to the victim model. Another line of research created attack methods against black-box victim models. In this project, I present G-EOT, the first generative model that attempts to create physical 3D adversarial objects that fool a black-box victim. It is a combination of the EOT framework \cite{athalye} for creating 3D adversarial objects and a generator-simulator model \cite{zheng_black_box_GAN} for black-box attacks. 
 		
-		For paper submission of your thesis you should physically sign your name on each of the above declaration statements and date them in black ink. For digital submissions you should sign and date them digitally using a touch or stylus input if available. There are pieces of software that allow you to write directly on PDF documents, or alternatively you can bring a signature into your document as a figure with a transparent or white background. If you do not have a stylus input / tablet like device you should ask your supervisor, as many in the department do their grading / work on digital tablets.
+		The experiments show that the model is unable to learn much throughout its training history. They suggest that the main issue is the large variation of the gradient between optimisation steps, due to the rendering of the object in random poses, which is necessary for creating robust adversarial noise for 3D objects. Further work is needed to see if the issue can be overcome.
+		
+		Finally, the experiments suggest show that a black-box version of EOT would be far more convenient for an attacker, and the thesis discusses how that could be achieved. On the other hand, a successful version of G-EOT would be very useful for augmenting datasets to make neural networks impervious to adversarial attacks.
 	\end{abstract}
 	
 % A long form dedication. 
 	\begin{Acknowledgements}
 		First of all, I would like to express my deep gratitude to my mother for all the emotional support and encouragement that she has given me over the past academic year and for being there when I needed her.
 		
-		Furthermore, I would like to thank Dr. Jingjing Deng for being a great supervisor and for guiding me towards realistic project goals.
+		Furthermore, I would like to thank Dr Jingjing Deng for being a great supervisor and for guiding me towards realistic project goals. In addition, Mr Hanchi Ren and Dr Mike Edwards greatly helped me with technical questions related to Tensorflow.
 		
-		Finally, I am thankful to my former coursemate Avi Varma for his support and suggestions and want to thank him for sharing with me things he learnt when doing his project a year ago.
+		Moreover, I want to thank Mr Szabolcs Dombi, the developer of ModernGL, for his quick replies to my emails in regards to technical issues related to ModernGL. I am also grateful to user "einarf" from the ModernGL Discord for his help.
+		
+		Finally, I am thankful to my former coursemates Avi Varma and Radu Bucurescu. Avi gave me support and suggestions and shared with me things he learnt when doing his project a year ago, while Radu taught me the basics of OpenGL rendering.
 	\end{Acknowledgements}
 	
 % Build the table of contents page.

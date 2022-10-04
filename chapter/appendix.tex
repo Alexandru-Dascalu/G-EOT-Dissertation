@@ -1,5 +1,7 @@
 \chapter{Detailed architecture of G-EOT}
     \label{app:detailed_architecture}
+    
+The following two figures were generated using the tensorflow.keras.utils.plot\_model method.
 
 \begin{figure}[h]
     \centering
@@ -58,5 +60,17 @@
 \end{tabular}
 \end{table}
 
-\chapter{Adversarial textures created by EOT}
+\chapter{Links to Jupyter notebooks, adversarial textures and evaluation images}
     \label{app:adversarial_textures}
+    
+The Jupyter Notebook used to evaluate the 50 adversarial textures created by EOT, with the full results, can be found at https://github.com/Alexandru-Dascalu/adversarial-3d/blob/master/evaluation.ipynb . It includes the TFR and classification accuracy for each adversarial texture. 
+
+The rendered images of the adversarial 3D objects used to evaluate the adversarial textures, created by the above Jupyter notebook, can be found at https://drive.google.com/drive/folders/1IndIDIvWwXQ2mo1EXpx2LLf8m0QEfJwS?usp=sharing . The "adv" folder contains the images with the adversarial texture, while the "normal" folder has the equivalent images with the original texture. Inside both of those folders, there is a folder for each 3D model. Inside each of those folders, the photos are organised into 5 sub-folders, one for each target label.
+
+The Jupyter notebook used to create the 50 adversarial textures and which contains the plots of the loss and TFR history during the optimisation process can be found at https://github.com/Alexandru-Dascalu/adversarial-3d/blob/master/experiments.ipynb .
+
+The 50 adversarial textures created in the experiment in section \ref{sec:eot_experiment} can be found at https://drive.google.com/drive/folders/16zr4nH81PVdYs231k5-qpgMP1Eg6-H2x?usp=sharing . In the file name of each texture, the first number if the target label for which that texture was made, and the second number is the number of optimisation steps that took to create that texture.
+
+The training history of the version of G-EOT with 50 experts can be seen in the Jupyter notebook at https://github.com/Alexandru-Dascalu/G-EOT/blob/master/experiment.ipynb .
+
+

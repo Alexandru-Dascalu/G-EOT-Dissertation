@@ -76,6 +76,7 @@ Some models have multiple correct labels for two reasons. The first one is that 
 \end{table}
 
 \section{EOT for rendererd 3D objects}
+    \label{sec:eot_experiment}
 
 \subsection{Experiment Design}
     \label{subsec:eot_experiment_design}
@@ -138,7 +139,7 @@ In figure \ref{fig:eot_histogram} you can see a histogram of the TFR for each of
 
 It took 82 hours to create the 50 adversarial textures on an RTX 3070 with 8GB of VRAM. That GPU can do around 2900 EOT optimisation steps in an hour, and therefore the creation of a single adversarial texture can take up to around 3.4 hours.
 
-All 50 adversarial textures created by and used in this experiment can be seen in appendix \ref{app:adversarial_textures}.
+Links to all 50 adversarial textures created by and used in this experiment can be seen in appendix \ref{app:adversarial_textures}. Moreover, that appendix has links to the Jupyter notebooks that contain proof of the experiment and the full results, including optimisation loss history, TFR and classification accuracy for each adversarial texture.
 
 \begin{table}
 \caption{Results of the EOT experiment on rendered 3D objects.}
@@ -258,6 +259,42 @@ Another example is in figure \ref{fig:running_shoe_rifle}, where the adversarial
     \label{fig:running_shoe_rifle}
 \end{figure}
 
+\section{Generator-simulator model for black-box attacks}
+
+\subsection{Experiment Design}
+
+The implementation\footnote{https://github.com/Alexandru-Dascalu/targeted-black-box-attack} of Zheng \textit{et al.} \cite{zheng_black_box_GAN} made by the authors of that paper was used for this experiment, whose purpose is to see if the implementation produces the same results as in the paper. 
+
+The model is trained to create adversarial noise for images from the CIFAR10 dataset. Both the simulator and generator use an exponentially decaying learning rate whose initial value is 0.001. The decay rate is 0.95, and it decays every 300 steps. However, it stops decreasing when it hits the minimum value of $2 * 10^{-5}$. 
+
+These experiments used a victim model with the SmallNet architecture, trained on CIFAR-10. The batch size is 200 for the experiment that uses SmallNet and SimpleNet as simulators, and 100 for the ConcatNet and Xception simulators, the maximum that can fit in 8 GB of VRAM. This experiment ran on an RTX 3070 GPU.
+
+\subsection{Experiment Results}
+
+You can see in table \ref{table:generator_simulator_results} the TFR for the experiment with each of the 4 simulators, along with the TFR result of the equivalent experiment from Zheng \textit{et al.} \cite{zheng_black_box_GAN}. Moreover, the UFRs for each simulator architecture were over 90\%.
+
+The results obtained in this experiment are very close to those reported in \cite{zheng_black_box_GAN}, demonstrating that the implementation is successful at creating CIFAR-10 adversarial images against black-box victim models. Since my fork of the implementation of the authors of \cite{zheng_black_box_GAN} did not change the code for the main algorithm and only refactored the code slightly, it was decided that repeating this experiment for other victim models was not necessary and that the implementation is a good starting point for G-EOT.
+
+\begin{table}
+\centering
+\caption{TFR results of experiment evaluation the implementation of the generator-simulator attack model on CIFAR-10.}
+\label{table:generator_simulator_results}
+\begin{tabular}{| c | c | c |} 
+ \hline
+ Simulator Architecture & TFR & TFR in Zheng \textit{et al.} \cite{zheng_black_box_GAN} \\ [0.5ex] 
+ \hline
+ \hline
+ SmallNet & 85.63\% & 85\% \\ 
+ \hline
+ SimpleNet & 84.15\% & 84.3\% \\ [1ex] 
+ \hline
+ ConcatNet & 79.69\% & 87.3\% \\
+ \hline
+ Xception & 86.62\% & 86.9\%  \\
+ \hline
+\end{tabular}
+\end{table}
+
 \section{G-EOT}
 
 \subsection{Experiment Design}
@@ -280,14 +317,14 @@ The weight $\beta$ from equation \ref{eq:g-eot-l2-loss} on page \pageref{eq:g-eo
 \subsection{Experiment Results}
     \label{subsec:g_eot_experiment_results}
     
-You can see a history of the loss of the model during training in figure \ref{fig:g_eot_loss_history}. The orange plot denotes the value of the first term of equation \ref{eq:generator_loss} on page \pageref{eq:generator_loss}, which measures how close is the generator to fooling the simulator. The green plot denotes the value of the term seen in \ref{eq:g-eot-l2-loss} on page \pageref{eq:g-eot-l2-loss}, which constrains the size of the adversarial noise. The red line represents the average generator loss at each evaluation step, which is done once every 500 training steps, as mentioned in the previous subsection. Moreover, this test loss is calculated by using the victim model rather than the simulator, as fooling the victim model is the intended objective.
-    
-\begin{figure}[H]
+\begin{figure}[ht]
     \centering
     \includegraphics[width=1\textwidth]{graphics/g_eot_loss_exp1.PNG}
     \caption{Loss history during training for the G-EOT model.}
     \label{fig:g_eot_loss_history}
 \end{figure}
+    
+You can see a history of the loss of the model during training in figure \ref{fig:g_eot_loss_history}. The orange plot denotes the value of the first term of equation \ref{eq:generator_loss} on page \pageref{eq:generator_loss}, which measures how close is the generator to fooling the simulator. The green plot denotes the value of the term seen in \ref{eq:g-eot-l2-loss} on page \pageref{eq:g-eot-l2-loss}, which constrains the size of the adversarial noise. The red line represents the average generator loss at each evaluation step, which is done once every 500 training steps, as mentioned in the previous subsection. Moreover, this test loss is calculated by using the victim model rather than the simulator, as fooling the victim model is the intended objective.
 
 The figure shows that the gradient for the generator fluctuates wildly between training steps. Moreover, despite a small decrease in the generator main loss and the generator test loss at the very beginning, they do not decrease further during training. Therefore, the generator failed to learn almost anything, having a TFR of almost 0\% for new random renders sampled during evaluation steps. Interestingly, the loss of the simulator also varies wildly between training steps and does not have a downward trend throughout training, despite its training task being a lot simpler. The loss of the simulator is a lot lower than the generator's, likely due to the simulator warm-up before training, at the end of which the simulator had an accuracy of 28.4\% on never before seen test samples.
 

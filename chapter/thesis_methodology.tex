@@ -122,18 +122,25 @@ The 3D rendering pipeline in figure \ref{fig:architecture} is essentially identi
     \label{fig:proposed_encoder}
 \end{wrapfigure}
 
-All textures for 3D models that I could find had at least 1024x1024 pixels, with most having a resolution of 2048x2048 pixels. Since generative models struggle to generate output larger than 256x256 pixels \cite{big_gan}, the generator first performs average pooling on the texture to reduce its resolution. The adversarial noise created by the generator has a resolution of 256x256. This is then upsampled using bilinear interpolation to 2048x2048 pixels so that it can be added to the original texture to obtain the adversarial texture.
+All textures for 3D models that I could find had at least 1024x1024 pixels, with most having a resolution of 2048x2048 pixels. Since generative models struggle to generate output larger than 256x256 pixels \cite{big_gan}, the generator first performs average pooling on the texture to reduce its resolution. The adversarial noise created by the generator has a resolution of 256x256. This is then upsampled using bicubic interpolation to 2048x2048 pixels so that it can be added to the original texture to obtain the adversarial texture.
 
 EOT \cite{athalye} was chosen rather than $\textrm{RP}_2$ \cite{evtimov_road_signs} because it is a lot more convenient, for reasons named in subsection \ref{subsubsec:rp2_results}. Furthermore, the synthetic transformation functions for 3D rendered objects can accurately simulate real-world transformations \cite{athalye}. On the other hand, the method presented in Zheng \textit{et al.} \cite{zheng_black_box_GAN} was chosen for the generator-simulator model rather than the one from Xiao \textit{et al.} \cite{advGAN} because it is simpler and it can generate attacks for all target labels, as mentioned in subsection \ref{subsec:AdvGAN}.
+
+The implementation\footnote{https://github.com/Alexandru-Dascalu/G-EOT} is written using the Tensorflow 2 library.
 
 \subsection{Generator}
     \label{subsec:g_eot_generator}
 
-The generator is an auto-encoder with a similar structure as the one in figure \ref{fig:zheng_generator} in subsection \ref{subsec:zheng}. Its encoder is a CNN with an architecture inspired by the SimpleNet CNN from Zheng \textit{et al.} \cite{zheng_black_box_GAN}, which is itself inspired by Xception \cite{xception}. 
+The generator is an auto-encoder with a similar structure as the one in figure \ref{fig:zheng_generator} in subsection \ref{subsec:zheng}. Its encoder is a CNN with an architecture inspired by the SimpleNet CNN from Zheng \textit{et al.} \cite{zheng_black_box_GAN}, which is itself inspired by Xception \cite{xception}.  Its structure can be seen in figure \ref{fig:proposed_encoder}. The numbers after the type of the convolutional layer are the number of output channels of that layer, followed by the kernel size. Although not seen in the diagram, each convolutional layer is followed by a batch normalisation layer \cite{batch_norm}.
 
-Its structure can be seen in figure \ref{fig:proposed_encoder}. The numbers after the type of the convolutional layer are the number of output channels of that layer, followed by the kernel size. Although not seen in the diagram, each convolutional layer is followed by a batch normalisation layer \cite{batch_norm}.
+Meanwhile, the structure of the decoder is similar to the one in Zheng \textit{et al.} \cite{zheng_black_box_GAN}, but it is deeper, has more kernels in its first layer, and has an upsampling layer at the end. Figure \ref{fig:proposed_decoder} has a diagram of the structure of the decoder. A more detailed diagram of the generator is in appendix \ref{app:detailed_architecture}.
 
-Meanwhile, the structure of the decoder is exactly the same as the one in Zheng \textit{et al.} \cite{zheng_black_box_GAN}, shown in figure \ref{fig:zheng_decoder} on page \pageref{fig:zheng_decoder}. A more detailed diagram of the generator is in appendix \ref{app:detailed_architecture}.
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth]{graphics/g_eot_decoder.PNG}
+    \caption{The structure of the decoder in the G-EOT generator.}
+    \label{fig:proposed_decoder}
+\end{figure}
 
 The loss function used to train the generator is the same as equation \ref{eq:generator_loss} on page \pageref{eq:generator_loss} describes, except for two things. Firstly, the adversarial texture $x + G(x, z)$ is used to render an image, represented by $t(x + G(x,z))$, and that image is given to the simulator. Secondly, it is not enough for the penalty term to be the $\ell_2$ norm of the adversarial noise, as the victim model does not perceive the texture directly, but rendered images of the 3D model instead. Therefore, the penalty term used is:
 
@@ -148,16 +155,16 @@ The loss function used to train the generator is the same as equation \ref{eq:ge
 
 \subsection{Simulator}
 
+\begin{wrapfigure}[28]{r}{0.35\textwidth}
+    \centering
+    \includegraphics[width=0.35\textwidth]{graphics/g_eot_simulator.PNG}
+    \caption{The structure of the G-EOT simulator.}
+    \label{fig:proposed_simulator}
+\end{wrapfigure}
+
 The simulator is a CNN inspired by the SimpleNet architecture from Zheng \textit{et al.} \cite{zheng_black_box_GAN}, and it is almost identical to the architecture of the encoder, though its last three convolutional layers have fewer kernels, and it has a global average pooling and a fully connected layer at the end, and it does not have the average pooling layer at the beginning. It can be seen in figure \ref{fig:proposed_simulator}, and a more detailed diagram is in appendix \ref{app:detailed_architecture}.
 
 Moreover, the loss function for training the simulator is the same as equation \ref{eq:simulator_loss} from subsection \ref{subsec:zheng}.  
-
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=0.3\textwidth]{graphics/g_eot_simulator.PNG}
-    \caption{The structure of the G-EOT simulator.}
-    \label{fig:proposed_simulator}
-\end{figure}
 
 \subsection{Training techniques}
     \label{subsec:training}
@@ -169,6 +176,8 @@ Following that, the simulator and generator are trained in alternative steps. In
 Then a training step is performed for the generator. It trains to generate adversarial noise for textures such that images rendered with those textures fool the simulator, as described in subsection \ref{subsec:g_eot_generator}. The gradients of the generator loss function are clipped before they are applied, just as Zheng \textit{et al.} \cite{zheng_black_box_GAN} did for their model.
 
 Unlike in Athalye \textit{et al.} \cite{athalye}, no renders are re-used between mini-batches. This is done because it has been observed that the maximum batch size for G-EOT that can fit in 8GB of memory is only 5. Generating 5 new renders for each training step can be done fast enough, and the model trains better the more new unique samples it sees.
+
+The source code of the implementation is available at https://github.com/Alexandru-Dascalu/G-EOT.
 
 \section{Analytic techniques}
     \label{sec:analytic_techniques}

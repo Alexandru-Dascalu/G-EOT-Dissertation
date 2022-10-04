@@ -5,15 +5,6 @@ This chapter will cover the background literature that is necessary to understan
 
 \section{Background Literature}
 
-\subsection{Deep Learning}
-\subsubsection{GANs and autoencoders}
-    
-This subsection will introduce some common generative model architectures that are relevant for this project.
-
-\textbf{Generative Adversarial Networks} (GAN) is a framework first proposed in Goodfellow \textit{et al.} \cite{gans}. It consists of a generator which creates new data samples and a discriminator whose job is to tell which samples are real or generated. The generator is trained to create samples which the discriminator network can not distinguish from real data. The generator and discriminator are each trained alternatively, several steps at a time. GANs have proven to be very powerful and are capable of generating highly realistic photos of people \cite{styleGAN}.
-
-\textbf{Autoencoders} are a type of neural network that is used to learn an appropriate latent representation of data. It is made up of an encoder and a decoder. The encoder reduces the input into a smaller latent vector and it often takes the shape of a neural network without a softmax layer. The decoder takes the latent vector as input and uses deconvolutional layers to generate new data. Auto-encoders are usually trained to reconstruct the original image from the latent space, though they can be used to generate something else too.
-
 \subsection{Generating adversarial examples}
 
 Generating adversarial perturbations in the white-box setting is an optimisation problem, and there is a wide variety of formulations of the problem in the literature. Szegedy \textit{et al.} \cite{szegedy2014intriguing} first defined it in the targeted setting as finding the minimum perturbation $\delta$ such that the victim model $f$ computes the desired wrong label $y^\prime$:
@@ -137,7 +128,7 @@ The authors optimise the adversarial texture $x^\prime$ in order to maximise the
 
 While $x^\prime$ is the input that the attacker directly controls, $t(x)$ is the input seen by the neural network. In the 3D case, $x$ is a 2D texture and $t(x)$ is a 2D image of a 3D rendered object with that texture, seen from a random angle and distance. You can see an example of this in figure \ref{fig:rendering}. 
 
-\begin{figure}[h]
+\begin{figure}[ht]
     \centering
     \includegraphics[width=0.8\textwidth]{graphics/rendering.JPG}
     \caption{The transformation function $t(\cdot)$ can model the rendering of a 2D texture into an image of the 3D object with a specific pose. Images are taken from \cite{athalye}.}
@@ -165,7 +156,7 @@ Following that, Athalye \textit{et al.} created two 3D-printed adversarial objec
 
 Athalye \textit{et al.} \cite{athalye} provides a good high-level description of their proposed framework, and their experiment design is sound. Furthermore, their discussions offer insight into the limitations of their method. However, it lacks some critical information needed to re-create their work. As mentioned in subsection \ref{subsubsec:eot_technique}, they do not explain exactly how to get the necessary parameters to represent $t(\cdot)$ as a linear transformation, nor do they provide a link to their source code or even the data set they used. Furthermore, they do not mention what optimiser learning rate or penalty constant $\lambda$ they used or for how many steps they ran their algorithm. Finally, a step-by-step algorithm would have been useful for implementing EOT and re-creating their results.
 
-\begin{figure}[h]
+\begin{figure}[ht]
     \centering
     \includegraphics[width=1\textwidth]{graphics/turtle.JPG}
     \caption{A selection of photographs of the 3D adversarial turtle object. The adversarial perturbation was made for the "rifle" target label. Taken from \cite{athalye}.}
@@ -222,7 +213,7 @@ The simulator is trained so that it provides the same output as the victim model
 
 \noindent where the outputs predicted by the simulator and victim model are denoted by $S(\cdot,\cdot)$ and $V(\cdot,\cdot)$, respectively. $\theta_s$ and $\theta_v$ are the parameters of the simulator and victim model, respectively. The adversarial noise created by the generator for a given image $x$ and a given target label $z$ is written as $G(x,z)$. $X$ is the training set and $\delta$ is the perturbation budget. $L(\cdot,\cdot)$ represents the cross-entropy loss function. Equation \ref{eq:simulator_loss} is visualised in figure \ref{fig:zheng_simulator_loss}. It is essentially a simplified version of distillation \cite{distillation}.
 
-\begin{figure}[h]
+\begin{figure}[ht]
     \centering
     \includegraphics[width=1\textwidth]{graphics/simulator_loss.JPG}
     \caption{Computational flow of the loss function for training the simulator. Diagram taken from \cite{zheng_black_box_GAN}.}
@@ -241,7 +232,7 @@ Meanwhile, the generator is trained to fool the simulator such that the latter w
 
 \noindent where $\theta_g$ is the parameter vector of the generator, $Y$ is the set of labels and $y$ is the correct label of $x$. $\beta$ is a constant for the perturbation size penalty. The first term of equation \ref{eq:generator_loss} maximises the probability that the simulator will classify the generator output as the target label, while the second term constrains the $\ell_2$ norm of the noise image vector.  Figure \ref{fig:zheng_generator_loss} visualises the generator training process.
 
-\begin{figure}[h]
+\begin{figure}[ht]
     \centering
     \includegraphics[width=1\textwidth]{graphics/generator_loss.JPG}
     \caption{Computational flow of the loss function for training the generator. Diagram taken from \cite{zheng_black_box_GAN}.}
@@ -250,7 +241,7 @@ Meanwhile, the generator is trained to fool the simulator such that the latter w
 
 The simulator in the paper is a CNN. The proposed generator is an auto-encoder, as you can see in figure \ref{fig:zheng_generator}. The encoder takes the form of a CNN without fully connected layers or global average pooling, and its job is to encode an image as a vector in higher-dimensional latent space. 
 
-\begin{figure}[h]
+\begin{figure}[ht]
     \centering
     \includegraphics[width=1\textwidth]{graphics/generator.JPG}
     \caption{The autoencoder architecture of the generator in \cite{zheng_black_box_GAN}. Diagram taken from \cite{zheng_black_box_GAN}.}
@@ -259,7 +250,7 @@ The simulator in the paper is a CNN. The proposed generator is an auto-encoder, 
 
 The decoder is an ensemble of neural networks made out of transposed convolution layers, as you can see in figure \ref{fig:zheng_decoder}. It uses an ensemble because the perturbation must be designed for a given target label. The decoder has a gating sub-network inspired by Shazeer \textit{et al.} \cite{experts_mixture_gate} which learns to create a sparse weights vector based on the target label. This sub-network is just one fully connected layer with as many output neurons as there are experts. The output of the decoder is a weighted sum of the outputs of each expert model, using the weights from the gating network. Different combinations of expert models are used for different target labels, and each expert learns to focus on one or a couple of target labels.
 
-\begin{figure}[h]
+\begin{figure}[ht]
     \centering
     \includegraphics[width=0.8\textwidth]{graphics/decoder.PNG}
     \caption{The decoder architecture of the generator in \cite{zheng_black_box_GAN}. Diagram taken from \cite{zheng_black_box_GAN}.}
@@ -277,13 +268,13 @@ The paper demonstrates an effective method to create a generator for black-box a
 \subsection{AdvGAN}
     \label{subsec:AdvGAN}
     
-Concurrently with Zheng \textit{et al.} \cite{zheng_black_box_GAN}, Xiao \textit{et al.} \cite{advGAN} created a generative adversarial network (GAN) to create adversarial images in the black-box setting. It is similar to the former, and therefore this subsection will concentrate on the differences between the two.
+Concurrently with Zheng \textit{et al.} \cite{zheng_black_box_GAN}, Xiao \textit{et al.} \cite{advGAN} created a generative adversarial network (GAN) \cite{gans} to create adversarial images in the black-box setting. It is similar to the former, and therefore this subsection will concentrate on the differences between the two.
 
 \subsubsection{Technique}
 
 AdvGAN has a generator network which produces adversarial noise and a simulator which is trained to behave like the black-box victim model, just like Zheng \textit{et al.} does. However, it also uses a discriminator, as you can see in figure \ref{fig:advgan}, where the simulator is called a "distilled black-box". 
 
-\begin{figure}[h]
+\begin{figure}[ht]
     \centering
     \includegraphics[width=0.8\textwidth]{graphics/advgan.PNG}
     \caption{High-level overview of AdvGAN. Diagram taken from \cite{advGAN}.}
@@ -309,6 +300,6 @@ The discriminator of AdvGAN is a CNN which performs binary classification on pat
 
 The authors evaluate AdvGAN against ResNet-32 and Wide ResNet-34 \cite{resnet} models trained on CIFAR-10, and in the black-box setting the targeted attack has a success rate of 78.5\% and 81.8\%, respectively. Moreover, it achieved an attack success rate of 92.76\% in the black-box setting of the MadryLab challenge \cite{madrylab}. Finally, the authors claim that they managed to create adversarial noise for 100 high-resolution ImageNet-like images against an InceptionV3 model \cite{inceptionv3} with a 100\% attack success rate.
 
-Xiao \textit{et al.} created a powerful generative network for targeted black-box attacks, and the paper provides a lot of detail on the overview of the model and on how it is trained. Moreover, it performs a wide range of experiments, with both white-box and black-box settings, as well as attacking models with defences against adversarial attacks. However, they do not provide detailed information on the exact architecture they used for the discriminator and generator in their experiments, they just say "adopt similar architectures for generator and discriminator with image-to-image translation literature" then cite two papers. They do not provide source code or supplementary material either. However, the largest downside of their model is that it must be trained for each individual target label.
+Xiao \textit{et al.} created a powerful generative network for targeted black-box attacks, and the paper provides a lot of detail on the overview of the model and on how it is trained. Moreover, it performs a wide range of experiments, with both white-box and black-box settings, as well as attacking models with defences against adversarial attacks. However, they do not provide detailed information on the exact architecture they used for the discriminator and generator, they just say "adopt similar architectures for generator and discriminator with image-to-image translation literature" then cite two papers. They do not provide source code or supplementary material either. However, the largest downside of their model is that it must be trained for each individual target label.
 
-Furthermore, their claim of a 100\% attack success rate on high-resolution images is odd, given that they do not mention how they adapted their architecture for larger input, and it makes no sense how the attack was even more successful than against simpler models on CIFAR-10. The example Imagenet adversarial images in the paper look identical to the normal images, too.
+Furthermore, their claim of a 100\% attack success rate on high-resolution images is odd, as they do not mention how they adapted their architecture for larger input, and it makes no sense how the attack was even more successful than against simpler models on CIFAR-10. The example Imagenet adversarial images in the paper look identical to the normal images, too.

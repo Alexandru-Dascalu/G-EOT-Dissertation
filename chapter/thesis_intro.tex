@@ -51,23 +51,21 @@ Therefore, the objectives of the project are as follows:
 \section{Contributions} 
 	\label{sec:intro_contribs} 
 	
-	The main contributions of this work can be seen as follows:
+	The main contributions of this work are as follows:
 	
-	\begin{description}	
-	
-		\item[$\bullet$ A LaTeX thesis template]\hfill
+	\begin{itemize}
+	    
+	    \item \textbf{A dataset of 15 labelled 3D models, along with associated textures, representing classes from the Imaganet dataset}
 		
-		Modify this document by adding additional TeX files for your top level content chapters. 
+		\item \textbf{A complete, clear and well-documented implementation of the EOT framework \cite{athalye} for 3D rendered objects:} The existing implementation does not implement all aspects of EOT seen in \cite{athalye}, uses deprecated libraries and lacks documentation.
 		
-		\item[$\bullet$ A typesetting guide of useful primitive elements]\hfill
+		\item \textbf{Analysis of the experimental results of using EOT to create adversarial attacks for 3D objects:} The shape and colour of the 3D models impact the performance and runtime of EOT, and the adversarial noise has semantic meaning.
 		
-		Use the building blocks within this template to typeset each part of your document. Aim to use simple and reusable elements to keep your LaTeX code neat and to make your document consistently styled throughout.
+		\item \textbf{G-EOT, a generative model for creating adversarial 3D rendered objects for a black-box victim model}
 		
-		\item[$\bullet$ A review of how to find and cite external resources]\hfill
-					
-		We review techniques and resources for finding and properly citing resources from the prior academic literature and from online resources.
-		
-	\end{description}
+		\item \textbf{Analysis of the experiment results of the G-EOT model:} Further work is needed to see if the issue of partially random gradients caused by rendering objects in random poses can be overcome.
+			
+	\end{itemize}
 	
 \section{Thesis Overview}
 

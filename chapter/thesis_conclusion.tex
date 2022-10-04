@@ -1,28 +1,23 @@
 \chapter{Conclusions and Future Work}
 \label{chap:conclusion}
 
-In this document we have demonstrated the use of a LaTeX thesis template which can produce a professional looking academic document. 
+Deep neural networks are used in a variety of safety-critical systems, yet they are vulnerable to adversarial attacks, which create subtle noise that makes the victim model produce the wrong output. These attacks are applicable to physical objects and can be highly successful. Moreover, there are attack methods that can work with a black-box victim model.
 
-\section{Contributions} 
-\label{sec:conclusion_contributions}
+In this project, I created G-EOT, the first generative model for creating 3D adversarial objects to fool a black-box victim model, that remain adversarial regardless of the position they are seen from. The experiments done so far show that the model is unable to learn much. Moreover, the experiments show that the issue is not caused by the number of target labels for which it needs to learn to create adversarial noise. Therefore, I hypothesize that the main issue is that the random poses of the object make the gradient vary too much. More work is needed to see if this issue can be overcome.
 
-The main contributions of this work can be summarized as follows:
-\begin{description}	
-
-	\item[$\bullet$ A LaTeX thesis template]\hfill
-	
-	Modify this document by adding additional top level content chapters. These descriptions should take a more retrospective tone as you include summary of performance or viability. 
-	
-	
-	\item[$\bullet$ A typesetting guide of useful primitive elements]\hfill
-	
-	Use the building blocks within this template to typeset each part of your document. Aim to use simple and reusable elements to keep your document neat and consistently styled throughout.
-	
-	\item[$\bullet$ A review of how to find and cite external resources]\hfill
-		
-	We review techniques and resources for finding and properly citing resources from the prior academic literature and from online resources. 
-	
-\end{description}
+Furthermore, the runtime of the experiments for the evaluation of EOT \cite{athalye} and G-EOT shows that for attackers, it would be far more convenient to train a simulator to behave like the black-box model and then use that simulator with EOT, rather than using G-EOT. The latter would take longer to train than it takes EOT to create a single adversarial 3D object. However, a generator that can create adversarial examples for many different 3D models and for any target label would still be useful to augment datasets for adversarial training, used so that neural networks are immune to adversarial attacks.
 
 \section{Future Work}
 \label{sec:conclusion_future_work}
+
+There are several research directions that could be undertaken to create a better method for creating black-box adversarial attacks for 3D objects:
+
+\begin{itemize}	
+		
+	\item Research training techniques, regularisation techniques, architectures and hyper-parameter tuning that could make G-EOT successfully learn. Among these, a larger generative model and larger batch sizes are particularly likely to be useful \cite{big_gan}, though more computational resources are needed for those.
+	
+	\item Modify the dataset of 3D models so all models have 1024x1024 textures rather than 2048x2048. The textures would occupy less memory, allowing for a larger batch size with the same amount of VRAM. 
+	
+	\item Experiment on a black-box version of EOT. This version would use distillation \cite{distillation} to train a simulator to behave like the black-box victim model. Since the attacker has access to the simulator's architecture and parameters, they can differentiate through it, and therefore use the white-box EOT framework. The experiments should look at how effective the adversarial textures made by EOT are on the simulator versus the victim model.  
+			
+\end{itemize}
